@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
+                  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+ 
+    <!--
+    	See http://wiki.openmrs.org/display/docs/Module+liquibase+File for 
+    	documentation on this file.
+    
+        See http://www.liquibase.org/manual/home#available_database_refactorings
+        for a list of supported elements and attributes
+    -->
+ 
+ 	<!-- Uncomment the changeset below if you want to make the Item class persistable, see also Item and DynaSWAPBaseModuleDaoTest -->
+	<changeSet id="dynaswap-2016-08-02-12-21" author="raff">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="dynaswap_users"/></not>
+		</preConditions>
+		<comment>
+			Creating the dynaswap_item table
+		</comment>
+		<createTable tableName="dynaswap_users">
+			<column name="dynaswap_user_id" type="int" >
+				<!--<constraints primaryKey="true" nullable="false"/>-->
+			</column>
+			<column name="username" type="varchar(50)">
+				<!--<constraints nullable="false" unique="true"></constraints>-->
+			</column>
+			<column name="bio_capsule" type="blob" />
+            <column name="classifier" type="blob"/>
+            <column name="created_on" type="datetime"/>
+			<column name="role" type="varchar(50)" />
+		</createTable>
+        <addForeignKeyConstraint constraintName="dynaswap_user_fk"
+                                 baseTableName="dynaswap_users"
+                                 baseColumnNames="dynaswap_user_id"
+                                 referencedTableName="users"
+                                 referencedColumnNames="user_id" />
+
+    </changeSet>
+	<changeSet id="dynaswap-2019-06-02-16-22" author="siva">
+		<addForeignKeyConstraint constraintName="dynaswap_role_fk"
+								 baseTableName="dynaswap_users"
+								 baseColumnNames="role"
+								 referencedTableName="role"
+								 referencedColumnNames="role" />
+		<addColumn tableName="role">
+			<column name="url" type="varchar(255)"></column>
+		</addColumn>
+
+	</changeSet>
+
+ 
+</databaseChangeLog>
