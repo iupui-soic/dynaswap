@@ -14,7 +14,7 @@
     -->
  
  	<!-- Uncomment the changeset below if you want to make the Item class persistable, see also Item and DynaSWAPBaseModuleDaoTest -->
-	<changeSet id="dynaswap-2016-08-02-12-21" author="raff">
+	<changeSet id="dynaswap-2019-06-02-12-22" author="siva">
 		<preConditions onFail="MARK_RAN">
 			<not><tableExists tableName="dynaswap_users"/></not>
 		</preConditions>
@@ -25,12 +25,13 @@
 			<column name="dynaswap_user_id" type="int" >
 				<!--<constraints primaryKey="true" nullable="false"/>-->
 			</column>
-			<column name="username" type="varchar(50)">
+			<column name="user_name" type="varchar(50)">
 				<!--<constraints nullable="false" unique="true"></constraints>-->
 			</column>
-			<column name="bio_capsule" type="blob" />
-            <column name="classifier" type="blob"/>
+			<column name="bio_capsule" type="mediumblob" />
+            <column name="classifier" type="mediumblob"/>
             <column name="created_on" type="datetime"/>
+			<column name="last_authenticated " type="datetime"/>
 			<column name="role" type="varchar(50)" />
 		</createTable>
         <addForeignKeyConstraint constraintName="dynaswap_user_fk"
@@ -48,6 +49,7 @@
 								 referencedColumnNames="role" />
 		<addColumn tableName="role">
 			<column name="url" type="varchar(255)"></column>
+			<column name="feature" type="mediumblob"></column>
 		</addColumn>
 
 	</changeSet>
