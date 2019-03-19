@@ -25,9 +25,6 @@
 			<column name="dynaswap_user_id" type="int" >
 				<!--<constraints primaryKey="true" nullable="false"/>-->
 			</column>
-			<column name="user_name" type="varchar(50)">
-				<!--<constraints nullable="false" unique="true"></constraints>-->
-			</column>
 			<column name="bio_capsule" type="mediumblob" />
             <column name="classifier" type="mediumblob"/>
             <column name="created_on" type="datetime"/>
