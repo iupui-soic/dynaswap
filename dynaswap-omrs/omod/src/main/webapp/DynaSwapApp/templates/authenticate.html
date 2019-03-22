@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <!--- load django staticfiles =====================================================================
+    =================================================================================================== -->
+    {% load static %}
+    <!-- ==============================================================================================
+    =================================================================================================== -->
+   
+    <!-- favicons =====================================================================================
+    =================================================================================================== -->
+    <link rel="shortcut icon" href="{% static "/images/iu_logo.png" %}" type="image/x-icon">
+    <link rel="icon" href="{% static "/images/iu_logo.png" %}" type="image/x-icon">
+    <!-- ==============================================================================================
+    =================================================================================================== -->
+
+    <!-- CSS ==========================================================================================
+    =================================================================================================== -->
+    <link rel="stylesheet" href="{% static "/css/choose-role-dialog.css" %}">
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.css">
+    <!-- ==============================================================================================
+    =================================================================================================== -->
+
+</head>
+
+<body>
+    <!-- Webpage Objects ==============================================================================
+    =================================================================================================== -->
+    <h1>DynaSWAP Secure Facial Authentication</h1>
+    <h2>Authenticate</h2>
+    <p></p>
+    
+    <button id="home">Home</button>
+
+    <p></p>
+    <p></p>
+    <table>
+        <tr>
+            <td>Username</td>
+            <td><input type="text" id="userName"></td>
+        </tr>
+        <tr>
+            <td><button id="chooseRoleButton">Choose Role</button></td>
+            <td><input readonly type="text" id="selectedRole"></td>
+        </tr>
+        <td colspan="2">
+            <input hidden type="text" id="userId">
+            <div id="userNameRoleMessage" style="font-size: medium; font-weight: bold; color: red; display: none;" />
+        </td>                
+    </table>
+
+    <p>
+        Click <b>Start/Stop</b> button to start or stop the camera capture.<br>
+        Click <b>Snap</b> button to capture a picture from the camera stream.<br>
+        Click <b>Submit Image</b> button to submit captured image.<br>
+        Click <b>Authenticate</b> button to authenticated with submitted image.<br>
+    </p>
+    <div>
+        <div class="control"><button id="startAndStopButton" disabled>Start</button></div>
+        <div class="control"><button id="snapButton" enabled>Snap</button></div>
+        <div class="control"><button id="submitImageButton" enabled>Submit Image</button></div>
+        <div class="control"><button id="authenticateButton" enabled>Authenticate</button></div>
+    </div>
+    <p class="err" id="errorMessage"></p>
+    <div>
+        <table cellpadding="0" cellspacing="0" width="0" border="0">
+        <tr>
+            <td>
+                <video id="videoInput" width=480 height=320></video>
+            </td>
+            <td>
+                <canvas id="canvasOutput" width=480 height=320></canvas>
+            </td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>
+                <div id="videoStreamCaption" class="caption">Video Stream</div>
+            </td>
+            <td>
+                <div id="capturedPictureCaption" class="caption">Captured Picture</div>
+            </td>
+            <td></td>
+            <td></td>
+        </tr>
+        </table>
+    </div>
+    <!-- ==============================================================================================
+    =================================================================================================== -->
+    
+    <!-- Django file uploader =========================================================================
+    =================================================================================================== -->
+    <div style="display: none">
+        <form id="authenticationForm" action="/authentication/" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+        </form>
+    </div>
+    <!-- ==============================================================================================
+    =================================================================================================== -->
+
+
+    <!-- Choose role dialog ===========================================================================
+    =================================================================================================== -->
+    <div id="dialog" title="Choose Role">
+        <form action="" method="post">
+            <img id="roleSampleImg" style="display: block; margin-left: auto; margin-right: auto;" />
+            <select id="roleSelect">
+            </select>
+            <div id="buttonOk">OK</div>
+        </form>
+    </div>
+    <!-- ==============================================================================================
+    =================================================================================================== -->
+
+    <!-- Java Script ==================================================================================
+    =================================================================================================== -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="{% static "/js/utils.js" %}"></script> 
+    <!-- ==============================================================================================
+    =================================================================================================== -->
+
+    <script>
+    
+    ////////////////////////////////////////////////////////////////////////////////////
+    //////  Variables /////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////
+    //////  Constants //////////////////////////
+    /////////////////////////////////////////////
+    const OPENCV_URL = "https://docs.opencv.org/3.4.5/opencv.js";
+    
+    /////////////////////////////////////////////
+    //////  Intialize Variables ////////////////
+    /////////////////////////////////////////////
+    let utils = new Utils('errorMessage');
+    let streaming = false;
+    let snapImage = new Image();
+    
+    /////////////////////////////////////////////
+    //////  Video/Image Regions ////////////////
+    /////////////////////////////////////////////
+    let videoInput = document.getElementById('videoInput');
+    let canvasOutput = document.getElementById('canvasOutput');
+    let canvasContext = canvasOutput.getContext('2d');
+    
+    /////////////////////////////////////////////
+    //////  Buttons ////////////////////////////
+    /////////////////////////////////////////////
+    let chooseRoleButton = document.getElementById('chooseRoleButton');
+    let startAndStopButton = document.getElementById('startAndStopButton');
+    let snapButton = document.getElementById('snapButton');
+    let submitImageButton = document.getElementById('submitImageButton');
+    let authenticateButton = document.getElementById('authenticateButton');
+    
+    /////////////////////////////////////////////
+    //////  Text Regions ///////////////////////
+    /////////////////////////////////////////////
+    let caption1 = document.getElementById('videoStreamCaption');
+    let caption2 = document.getElementById('capturedPictureCaption');
+    
+    ////////////////////////////////////////////////////////////////////////////////////
+    //////  Document Startup //////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////
+    $( document ).ready(function() {
+        /////////////////////////////////////////////
+        //////  Startup Setup //////////////////////
+        /////////////////////////////////////////////
+        let userName = "{{userName}}";
+        if (userName != 'None') {
+            $("#userName").val(userName);
+        }
+        snapButton.style.visibility = "hidden";
+        submitImageButton.style.visibility = "hidden";
+        authenticateButton.style.visibility = "hidden";
+        caption1.style.visibility = "hidden";
+        caption2.style.visibility = "hidden";
+
+        $("#userName").focus();
+        
+        /////////////////////////////////////////////
+        //////  Role Select Dialogue ///////////////
+        /////////////////////////////////////////////
+        $.ajax({
+            url: "/get_roles/",
+            type: "get",
+            success: function(data) {
+                if (data["status"] === "true") {
+                    let $select = $("#roleSelect");
+                    $select.find("option").remove();  
+                    $.each(data.roles,function(index, value) 
+                    {
+                        $select.append("<option value='" + value.url + "'>" + value.role + "</option>");
+                    });
+                    
+                    $("#roleSampleImg").attr("src", $select.val());
+                    let roleId = "{{roleId}}";
+                    if (roleId != 'None') {
+                        $("#selectedRole").val(roleId);
+                    }
+                    else {
+                        $("#selectedRole").val($("#roleSelect>option:selected").text());
+                    }
+                }
+                else {
+                }
+            },
+            error: function (error) {
+                console.log(error);
+                alert('Sorry an unexpected error has occurred, please try again');
+            },
+        });
+
+        /////////////////////////////////////////////
+        //////  Role Select UI /////////////////////
+        /////////////////////////////////////////////
+        $("#dialog").dialog({
+            autoOpen: false,
+            modal: true,
+            dialogClass: "noTitleBar",
+            resizable: false,
+            open: function(event, ui) {
+                $("#buttonOk").click(function() {
+                    $("#dialog").dialog("close");
+                });
+            },
+            close: function(event, ui) {
+                $("#selectedRole").val($("#roleSelect>option:selected").text());
+            },
+        });
+
+        /////////////////////////////////////////////
+        //////  Role Select Change /////////////////
+        /////////////////////////////////////////////
+        $("#roleSelect").change(function() {
+            $("#roleSampleImg").attr("src", $("#roleSelect").val())
+        });
+
+        /////////////////////////////////////////////
+        //////  Choose Role Button Action Listener /
+        /////////////////////////////////////////////
+        chooseRoleButton.addEventListener('click', () => {
+            $("#dialog").dialog("open");
+        });
+
+        /////////////////////////////////////////////
+        //////  Home Button Action Listener ////////
+        /////////////////////////////////////////////
+        $("#home").click(function() {
+            window.location.href = "/";
+        });
+
+        /////////////////////////////////////////////
+        //////  Start/Stop Button Action Listener //
+        /////////////////////////////////////////////
+        startAndStopButton.addEventListener('click', () => {
+            if (!streaming) {
+                // Check user entries before starting camera
+                ifOkStartCamera();
+            } else {
+                utils.stopCamera();
+                onVideoStopped();
+
+                snapButton.style.visibility = "hidden";
+            }
+        });
+
+        /////////////////////////////////////////////
+        //////  Snap Button Action Listener ////////
+        /////////////////////////////////////////////
+        snapButton.addEventListener('click', () => {
+            let video = document.getElementById('videoInput');
+            let cap = new cv.VideoCapture(video);
+            let frame = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+            cap.read(frame);
+            cv.imshow('canvasOutput',frame)
+            snapImage = canvasOutput.toDataURL("image/jpeg");
+            frame.delete();
+
+            submitImageButton.style.visibility = "visible";
+            caption2.style.visibility = "visible";
+        });
+
+        /////////////////////////////////////////////
+        //////  Submit Button Action Listener //////
+        /////////////////////////////////////////////
+        submitImageButton.addEventListener('click', () => {
+            canvasContext.clearRect(0, 0, canvasOutput.width, canvasOutput.height);
+            utils.stopCamera();
+            streaming = false;
+
+            startAndStopButton.style.visibility = "hidden";
+            snapButton.style.visibility = "hidden";
+            submitImageButton.style.visibility = "hidden";
+            authenticateButton.style.visibility = "visible";
+            caption1.style.visibility = "hidden";
+            caption2.style.visibility = "hidden";
+        });
+
+        /////////////////////////////////////////////
+        //////  Register Button Action Listener ////
+        /////////////////////////////////////////////
+        authenticateButton.addEventListener('click', () => {
+            authenticateButton.style.visibility = "hidden";
+
+            let data = new FormData($('form').get(0));
+            data.append('userId', $("#userId").val()); 
+            data.append('role', $("#selectedRole").val()); 
+            data.append('image', snapImage);
+        
+            // Send it to the mothership
+            $.ajax({
+                url: $("#authenticationForm").attr("action"),
+                type: $("#authenticationForm").attr("method"),
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function(data) {
+                    if (data["status"] === "authenticate_success") {
+                        let confidence = data["confidence"];
+                        window.location.href = "/accepted_page?userName=" + $("#userName").val() + "&confidence=" + confidence + "&roleId=" + $("#selectedRole").val();
+                    }
+                    else if (data["status"] === "authenticate_failed") {
+                        let confidence = data["confidence"];
+                        window.location.href = "/rejected_page?userName=" + $("#userName").val() + "&confidence=" + confidence + "&roleId=" + $("#selectedRole").val();
+                    }
+                    else if (data["status"] === "not_registered") {
+                        alert(data["error"]);
+                        window.location.href = "/";
+                    }
+                    else if (data["status"] === "detection_error") {
+                        alert(data["error"]);
+                        window.location.href = "/";
+                    }
+                    else {
+                        console.log(data["error"]);
+                        alert('Sorry an unexpected error has occurred, please try again');
+                        window.location.href = "/";
+                    }
+                },
+                error: function (error) {
+                    console.log(error);
+                    alert('Sorry an unexpected error has occurred, please try again');
+                    window.location.href = "/";
+                },
+            });
+        });
+
+        utils.loadOpenCv(() => {
+            startAndStopButton.removeAttribute('disabled');
+        });
+    })
+
+    ////////////////////////////////////////////////////////////////////////////////////
+    //////  Functions /////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////
+    //////  Video Start Function ///////////////
+    /////////////////////////////////////////////
+    function onVideoStarted() {
+        streaming = true;
+        videoInput.width = videoInput.videoWidth;
+        videoInput.height = videoInput.videoHeight;
+
+        startAndStopButton.innerText = 'Stop';
+    }
+
+    /////////////////////////////////////////////
+    //////  Video Stop Function ////////////////
+    /////////////////////////////////////////////
+    function onVideoStopped() {
+        startAndStopButton.innerText = 'Start';
+        canvasContext.clearRect(0, 0, canvasOutput.width, canvasOutput.height);
+        streaming = false;
+        
+        submitImageButton.style.visibility = "hidden";
+        caption1.style.visibility = "hidden";
+        caption2.style.visibility = "hidden";
+    }
+
+    /////////////////////////////////////////////
+    //////  Get Cookie Function ////////////////
+    /////////////////////////////////////////////
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function ifOkStartCamera() {
+        let userName = $("#userName").val().trim();
+        let role = $("#selectedRole").val();
+        if (userName.length == 0)
+        {
+            $("#userNameRoleMessage").text("Please enter a Username");
+            $("#userNameRoleMessage").show();
+            return;
+        }
+
+        $.get("/get_user_role/", { "userName": userName, "role": role, "checkRegistered": true }).then(
+            function(data) {
+                if (data["status"] === "success") {
+                    $("#userNameRoleMessage").hide();
+                    $("#userId").val(data["user_id"]);
+
+                    // Start camera
+                    utils.clearError();
+                    utils.startCamera('qvga', onVideoStarted, 'videoInput');
+
+                    snapButton.style.visibility = "visible";
+                    caption1.style.visibility = "visible";
+                }
+                else if (data["status"] === "already_registered") {
+                    $("#userNameRoleMessage").text("Username/Role combination already registered");
+                    $("#userNameRoleMessage").show();
+                }                
+                else if (data["status"] === "not_registered") {
+                    $("#userNameRoleMessage").text("Username/Role combination not yet registered");
+                    $("#userNameRoleMessage").show();
+                }
+                else if (data["status"] === "unknown") {
+                    $("#userNameRoleMessage").text("Unknown Username/Role combination");
+                    $("#userNameRoleMessage").show();
+                }
+                else {
+                    console.log(data["error"]);
+                    alert('Sorry an unexpected error has occurred, please try again');
+                }
+            },
+            function(error) {
+                console.log(error);
+                alert('Sorry an unexpected error has occurred, please try again');
+            }
+        );
+    }
+
+    </script> 
+</body>
+</html>
