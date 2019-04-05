@@ -1,0 +1,40 @@
+#buttonOk {
+    width:100px;
+    height:30px;
+    display: block; 
+    margin-left: auto; 
+    margin-right: auto;            
+    margin-top:25px;
+    border-radius:5px;
+    color:#000;
+    background-color:rgba(0, 0, 0, 0.12);
+    font-size:15px;
+    font-weight:700;
+    text-align:center;                
+    cursor:pointer;
+    }
+    
+    #buttonOk:hover {
+        color:#fff;
+    }
+    
+    #roleSelect {
+    padding-left:10px;
+    margin-top:50px;
+    width:96%;
+    height:30px;
+    border-radius:5px;
+    border:0;
+    padding:5px 0;
+    color:#000;
+    font-size:16px;
+    font-weight:700            
+    }
+    
+    .noTitleBar .ui-dialog-titlebar {display:none}
+    
+    .ui-dialog .ui-dialog-content {
+    overflow: visible;
+    padding:2em;
+    background-color:rgba(218, 227, 233, 0.51);
+    }
