@@ -162,18 +162,25 @@ class AuthenticateView(TemplateView):
         ### Get POST data form
         try:
             # Extract data
-            user_id = int(request.POST.get('userId', ''))
+            user_name = request.POST.get('userName', '')
             role = request.POST.get('role', '')
+
+            # Get user
+            user_found = Users.objects.filter(username=user_name)
+            if user_found.count() < 1:
+                return JsonResponse({'status': 'authenticate_failed'})
+            user_id = user_found[0].user_id
+
+            # Check valid user
+            user_found = DynaSwapUsers.objects.filter(dynaswap_user_id=user_id, role=role)
+            if user_found.count() < 1:
+                return JsonResponse({'status': 'authenticate_failed'})
+            user_found = user_found[0]
+
             temp_image = request.POST.get('image', '')
             format, imgstr = temp_image.split(';base64,')
             ext = format.split('/')[-1]
             image = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
-
-            ### Get user
-            user_found = DynaSwapUsers.objects.filter(dynaswap_user_id=user_id, role=role)
-            if user_found.count() < 1:
-                return JsonResponse({'status': 'not_registered', 'error': 'Username/Role has not been registered.'})
-            user_found = user_found[0]
 
             # Convert submited images to biocapsules
             stream = image.file
@@ -189,11 +196,10 @@ class AuthenticateView(TemplateView):
             # Perform authentication
             bc_feat = bc[0, :-2]
             classification, prob = self.__auth.authenticate_classifier(bc_feat, classifier)
-            prob_string = str(np.around((prob * 100.), 3)) + '%'
 
             # Classification outcome
             if not classification:
-                return JsonResponse({'status': 'authenticate_failed', 'confidence': prob_string})
+                return JsonResponse({'status': 'authenticate_failed'})
 
             # Update user with authentication time, new bc, new classifier
             if prob > 0.70:
@@ -209,7 +215,7 @@ class AuthenticateView(TemplateView):
         except Exception as e:
             return JsonResponse({'status': 'error', 'error': str(e)})
 
-        return JsonResponse({'status': 'authenticate_success', 'confidence': prob_string})
+        return JsonResponse({'status': 'authenticate_success'})
 
 
 class GetUserRoleView(TemplateView):
@@ -217,7 +223,6 @@ class GetUserRoleView(TemplateView):
         try:
             user_name = request.GET.get('userName')
             role = request.GET.get('role')
-            checkRegistered = request.GET.get('checkRegistered') == 'true'
 
             # Check valid user
             user_found = Users.objects.filter(username=user_name)
@@ -232,14 +237,9 @@ class GetUserRoleView(TemplateView):
 
             dynaswap_user = DynaSwapUsers.objects.filter(dynaswap_user_id=user_instance.user_id, role=role)
 
-            if checkRegistered:
-                # Check not already registered
-                if dynaswap_user.count() == 0:
-                    return JsonResponse({'status': 'not_registered'})
-            else:
-                # Check not already registered
-                if dynaswap_user.count() > 0:
-                    return JsonResponse({'status': 'already_registered'})
+            # Check not already registered
+            if dynaswap_user.count() > 0:
+                return JsonResponse({'status': 'already_registered'})
 
             return JsonResponse({'status': 'success', 'user_id': user_instance.user_id})
         except Exception as e:
