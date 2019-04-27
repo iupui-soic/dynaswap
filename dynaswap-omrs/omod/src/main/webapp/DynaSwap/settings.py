@@ -15,6 +15,25 @@ import cv2
 from DynaSwapApp.services.face_models.MTCNN import MtcnnService
 from DynaSwapApp.services.face_models.FNET import FnetService
 
+
+def get_db_connection_configs(file_name):
+    ''' retrieve the database connection configurations from the given file '''
+    try:
+        lines = [line.rstrip('\n') for line in open(file_name)]
+        conn_str = [line[15:].split('?')[0] for line in lines if line.startswith('connection.url=')][0]
+        parts = conn_str.split('\:')
+        host = parts[2][2:]
+        port = parts[3][:4]
+        user = [line[20:] for line in lines if line.startswith('connection.username=')][0]
+        passwd = [line[20:] for line in lines if line.startswith('connection.password=')][0]
+        schema = conn_str[conn_str.rfind('/') + 1:]
+    except:
+        print('ERROR : Unable to retrieve database connection parameters')
+        host = port = user = passwd = schema = ''
+
+    return {'host': host, 'port': port, 'user': user, 'passwd': passwd, 'schema': schema}
+
+
 #Initialize singletons
 MtcnnService()
 FnetService()
@@ -81,12 +100,16 @@ WSGI_APPLICATION = 'DynaSwap.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
+configs = get_db_connection_configs('/var/lib/OpenMRS/openmrs-runtime.properties')
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'OPTIONS': {
-            'read_default_file': os.path.join(BASE_DIR, 'DynaSwap/my.cnf'),
-        },
+        'ENGINE': 'django.db.backends.mysql', 
+        'NAME': configs['schema'],
+        'USER': configs['user'],
+        'PASSWORD': configs['passwd'],
+        'HOST': configs['host'],
+        'PORT': configs['port'],
     }
 }
 
