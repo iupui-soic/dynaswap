@@ -12,6 +12,7 @@ package org.openmrs.module.dynaswap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.module.BaseModuleActivator;
+import java.io.IOException;
 
 /**
  * This class contains the logic that is run every time this module is either started or shutdown
@@ -25,6 +26,13 @@ public class DynaSWAPBaseModuleActivator extends BaseModuleActivator {
 	 */
 	public void started() {
 		log.info("Started DynaSWAP.BaseModule");
+		Runtime rt = Runtime.getRuntime();
+		try {
+			rt.exec("python3 dynaswap_activator.py");
+			rt.exec("python3 ??????/omod/src/main/webapp/manage.py runserver 0.0.0.0:8000");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**
