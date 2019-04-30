@@ -5,7 +5,7 @@ import sys
 
 
 # Make sure required modules are installed
-with open("requirements.txt") as f:
+with open('../../../../../../../../omod/src/main/webapp/requirements.txt') as f:
     for line in f:
         pip.main(['install', '-U', line])
 
