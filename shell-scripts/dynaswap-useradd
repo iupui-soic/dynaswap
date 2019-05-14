@@ -59,13 +59,13 @@ sudo useradd -d /home/sivaadde -s /bin/bash -m sivaadde> /dev/null
 sudo useradd -d /home/johliu -s /bin/bash -m johliu> /dev/null
 	if [ $? -ne 0 ]
 		then
-		sudo echo 'ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAx2Bul5MGeu1i/j9ST4utCeDIpyTsV1lRO+Po/vz2Lp7lFaiL4BJX43IAwS8UxLpgg9GanM/guNS+xGZ40pZO0cEP9sFGuf3emp9NgKvTCHvHJJZEImmtQWky7blqjov2w3cNfXESbCUVygBw5t7y636wOLokJnrCqSXcmSdZJl40f+KrQMmFWRnnNmyiwdec7E/GNvzvmraz3/CXXYWuYAYPG71SuOr3ny+gNfQMIXr+yegKeai+hrnXTX3n5Y9tX0OzYSPqRTy0gjQycbsnMq87djr+jvKlWxRvAFD3qQKCP8gFJVv249xdXMzyzgfzBTKRSelzY9ZABkZN8cIYRQ== rsa-key-20190211​​'>/home/johliu/.ssh/authorized_keys
+		sudo echo 'ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAx2Bul5MGeu1i/j9ST4utCeDIpyTsV1lRO+Po/vz2Lp7lFaiL4BJX43IAwS8UxLpgg9GanM/guNS+xGZ40pZO0cEP9sFGuf3emp9NgKvTCHvHJJZEImmtQWky7blqjov2w3cNfXESbCUVygBw5t7y636wOLokJnrCqSXcmSdZJl40f+KrQMmFWRnnNmyiwdec7E/GNvzvmraz3/CXXYWuYAYPG71SuOr3ny+gNfQMIXr+yegKeai+hrnXTX3n5Y9tX0OzYSPqRTy0gjQycbsnMq87djr+jvKlWxRvAFD3qQKCP8gFJVv249xdXMzyzgfzBTKRSelzY9ZABkZN8cIYRQ== rsa-key-20190211'>/home/johliu/.ssh/authorized_keys
 	else
 		sudo mkdir /home/johliu/.ssh/
 		sudo chmod 700 /home/johliu/.ssh/
 		sudo chown johliu:johliu /home/johliu/.ssh
 		sudo touch /home/johliu/.ssh/authorized_keys
-		sudo echo 'ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAx2Bul5MGeu1i/j9ST4utCeDIpyTsV1lRO+Po/vz2Lp7lFaiL4BJX43IAwS8UxLpgg9GanM/guNS+xGZ40pZO0cEP9sFGuf3emp9NgKvTCHvHJJZEImmtQWky7blqjov2w3cNfXESbCUVygBw5t7y636wOLokJnrCqSXcmSdZJl40f+KrQMmFWRnnNmyiwdec7E/GNvzvmraz3/CXXYWuYAYPG71SuOr3ny+gNfQMIXr+yegKeai+hrnXTX3n5Y9tX0OzYSPqRTy0gjQycbsnMq87djr+jvKlWxRvAFD3qQKCP8gFJVv249xdXMzyzgfzBTKRSelzY9ZABkZN8cIYRQ== rsa-key-20190211​​'>/home/johliu/.ssh/authorized_keys
+		sudo echo 'ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAx2Bul5MGeu1i/j9ST4utCeDIpyTsV1lRO+Po/vz2Lp7lFaiL4BJX43IAwS8UxLpgg9GanM/guNS+xGZ40pZO0cEP9sFGuf3emp9NgKvTCHvHJJZEImmtQWky7blqjov2w3cNfXESbCUVygBw5t7y636wOLokJnrCqSXcmSdZJl40f+KrQMmFWRnnNmyiwdec7E/GNvzvmraz3/CXXYWuYAYPG71SuOr3ny+gNfQMIXr+yegKeai+hrnXTX3n5Y9tX0OzYSPqRTy0gjQycbsnMq87djr+jvKlWxRvAFD3qQKCP8gFJVv249xdXMzyzgfzBTKRSelzY9ZABkZN8cIYRQ== rsa-key-20190211'>/home/johliu/.ssh/authorized_keys
 		sudo chown johliu:johliu /home/johliu/.ssh/authorized_keys
 		sudo usermod -aG sudo johliu
 	fi
