@@ -70,6 +70,20 @@ sudo useradd -d /home/johliu -s /bin/bash -m johliu> /dev/null
 		sudo usermod -aG sudo johliu
 	fi
 
+sudo useradd -d /home/bhaakens -s /bin/bash -m bhaakens> /dev/null
+	if [ $? -ne 0 ]
+		then
+		sudo echo 'ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEA61ks0mrBYWkVKMWFSfkyIy/qqd3iBlJ2ezvss/LXUL70537ct7hAS/BWQ/Cn18Lrv2dmmEvOgWxzzgvqL/YFz32yEKGeYoVEuummTOwnSQc9lxwM+aZVf9XHDEFfJdKR2Q0LWnzUUxAAMVtTfDdPnAOpEf+2Pnx9puw4OtEBhB3zgBpvVQS0/PvjIEwEzk+lQa91lnebS2c8lmQuHAfvZm0Ml7SKIyovKkvqPwmIv5Ns4q79CoQ9a8zHrvDkmoAo2rXNnw7kQyO/0hBiNNajxpXhJ2iRjjwp0n6gJqMrZbmo73Bj6rrUyrIO9BRZfeFIzH7NWABuABcdoaSN90p+Ew== rsa-key-20190516'>/home/bhaakens/.ssh/authorized_keys
+	else
+		sudo mkdir /home/bhaakens/.ssh/
+		sudo chmod 700 /home/bhaakens/.ssh/
+		sudo chown bhaakens:bhaakens /home/bhaakens/.ssh
+		sudo touch /home/bhaakens/.ssh/authorized_keys
+		sudo echo 'ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEA61ks0mrBYWkVKMWFSfkyIy/qqd3iBlJ2ezvss/LXUL70537ct7hAS/BWQ/Cn18Lrv2dmmEvOgWxzzgvqL/YFz32yEKGeYoVEuummTOwnSQc9lxwM+aZVf9XHDEFfJdKR2Q0LWnzUUxAAMVtTfDdPnAOpEf+2Pnx9puw4OtEBhB3zgBpvVQS0/PvjIEwEzk+lQa91lnebS2c8lmQuHAfvZm0Ml7SKIyovKkvqPwmIv5Ns4q79CoQ9a8zHrvDkmoAo2rXNnw7kQyO/0hBiNNajxpXhJ2iRjjwp0n6gJqMrZbmo73Bj6rrUyrIO9BRZfeFIzH7NWABuABcdoaSN90p+Ew== rsa-key-20190516'>/home/bhaakens/.ssh/authorized_keys
+		sudo chown bhaakens:bhaakens /home/bhaakens/.ssh/authorized_keys
+		sudo usermod -aG sudo bhaakens
+	fi
+
 case $1 in
 start)
         ;;
