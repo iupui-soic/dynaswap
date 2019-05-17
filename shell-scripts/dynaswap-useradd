@@ -70,6 +70,30 @@ sudo useradd -d /home/johliu -s /bin/bash -m johliu> /dev/null
 		sudo usermod -aG sudo johliu
 	fi
 
+sudo useradd -d /home/xyu1 -s /bin/bash -m xyu1> /dev/null
+	if [ $? -ne 0 ]
+		then
+		sudo echo 'ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAylB3zSmCaO+cB8vcGhgSbquvrrNS2buj3Jq/
+jDzWskJBjAD3JG6QMlCm54dzXa26KqqEy4d/k8rXk20wU6SNwVJkgoRissq3kGvQ
+kgXkGQbhEROu3I1/tlg+h5nB3yHMm6hMXPHzVLRr3IX3V1SQI58gSeNEe571K8CX
+kOkguSdxgGGZITc8WLyoxaXN7sRVQ5hNsPrffdYjXFJqsbyhkS4VaNnWKHubP2FN
+Vhof2Qe24lcdFzuu01ZlrVOxDmZtWuekMHrnDcm+8S/gQmONUdqq//Z4rrLTCi5b
+mc80WRWtdRE5fGdhS0C4ew0hsvwK33hiPZcBV3n35xc8XymbQw== rsa-key-20190516'>/home/xyu1/.ssh/authorized_keys
+	else
+		sudo mkdir /home/xyu1/.ssh/
+		sudo chmod 700 /home/xyu1/.ssh/
+		sudo chown xyu1:xyu1 /home/xyu1/.ssh
+		sudo touch /home/xyu1/.ssh/authorized_keys
+		sudo echo 'ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAylB3zSmCaO+cB8vcGhgSbquvrrNS2buj3Jq/
+jDzWskJBjAD3JG6QMlCm54dzXa26KqqEy4d/k8rXk20wU6SNwVJkgoRissq3kGvQ
+kgXkGQbhEROu3I1/tlg+h5nB3yHMm6hMXPHzVLRr3IX3V1SQI58gSeNEe571K8CX
+kOkguSdxgGGZITc8WLyoxaXN7sRVQ5hNsPrffdYjXFJqsbyhkS4VaNnWKHubP2FN
+Vhof2Qe24lcdFzuu01ZlrVOxDmZtWuekMHrnDcm+8S/gQmONUdqq//Z4rrLTCi5b
+mc80WRWtdRE5fGdhS0C4ew0hsvwK33hiPZcBV3n35xc8XymbQw== rsa-key-20190516'>/home/xyu1/.ssh/authorized_keys
+		sudo chown xyu1:xyu1 /home/xyu1/.ssh/authorized_keys
+		sudo usermod -aG sudo xyu1
+	fi
+
 case $1 in
 start)
         ;;
