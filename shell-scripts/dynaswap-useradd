@@ -66,33 +66,6 @@ sudo useradd -d /home/johliu -s /bin/bash -m johliu> /dev/null
 		sudo chown johliu:johliu /home/johliu/.ssh/authorized_keys
 	fi
 
-sudo useradd -d /home/xyu1 -s /bin/bash -m xyu1> /dev/null
-	if [ $? -ne 0 ]
-		then
-		sudo echo 'ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAylB3zSmCaO+cB8vcGhgSbquvrrNS2buj3Jq/jDzWskJBjAD3JG6QMlCm54dzXa26KqqEy4d/k8rXk20wU6SNwVJkgoRissq3kGvQkgXkGQbhEROu3I1/tlg+h5nB3yHMm6hMXPHzVLRr3IX3V1SQI58gSeNEe571K8CXkOkguSdxgGGZITc8WLyoxaXN7sRVQ5hNsPrffdYjXFJqsbyhkS4VaNnWKHubP2FNVhof2Qe24lcdFzuu01ZlrVOxDmZtWuekMHrnDcm+8S/gQmONUdqq//Z4rrLTCi5bmc80WRWtdRE5fGdhS0C4ew0hsvwK33hiPZcBV3n35xc8XymbQw== rsa-key-20190516'>/home/xyu1/.ssh/authorized_keys
-	else
-		sudo mkdir /home/xyu1/.ssh/
-		sudo chmod 700 /home/xyu1/.ssh/
-		sudo chown xyu1:xyu1 /home/xyu1/.ssh
-		sudo touch /home/xyu1/.ssh/authorized_keys
-		sudo echo 'ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAylB3zSmCaO+cB8vcGhgSbquvrrNS2buj3Jq/jDzWskJBjAD3JG6QMlCm54dzXa26KqqEy4d/k8rXk20wU6SNwVJkgoRissq3kGvQkgXkGQbhEROu3I1/tlg+h5nB3yHMm6hMXPHzVLRr3IX3V1SQI58gSeNEe571K8CXkOkguSdxgGGZITc8WLyoxaXN7sRVQ5hNsPrffdYjXFJqsbyhkS4VaNnWKHubP2FNVhof2Qe24lcdFzuu01ZlrVOxDmZtWuekMHrnDcm+8S/gQmONUdqq//Z4rrLTCi5bmc80WRWtdRE5fGdhS0C4ew0hsvwK33hiPZcBV3n35xc8XymbQw== rsa-key-20190516​​'>/home/xyu1/.ssh/authorized_keys
-		sudo chown xyu1:xyu1 /home/xyu1/.ssh/authorized_keys
-	fi
-
-sudo useradd -d /home/bhaakens -s /bin/bash -m bhaakens> /dev/null
-	if [ $? -ne 0 ]
-		then
-		sudo echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCbsnw0hVNFJ1zpE6hhNueGBeQV3MUwyhUJKTzbFMmtN1C26R74Ss8faZ+0xxFrQ8p5lvNY4uaxs7MiEl2wxtrd9ouk8zrwMt/9sH+5JVo0lV1MiRRp+d/iDDECGrVvPC6U12aYEzGNiCCb1uMP4ESpcCDB0ov/jOTF319KbIhEs5Sc1umPN71MXipBL3/F7sXqnZzoc7NNXDdncFXYKotdZhNEQ5HeAI92pANdgZ0BUA1yhMIXQFozuLugs2IZ1KKZ5rEEi86Bpuj1yvJomQ11gP9ETn3onhTVJn/BXS8HDCPwUhQ+4eRSDlqkrokp30yYL/rau3LY1b1Alr0qJHql== brandon@laptop'>/home/bhaakens/.ssh/authorized_keys
-	else
-		sudo mkdir /home/bhaakens/.ssh/
-		sudo chmod 700 /home/bhaakens/.ssh/
-		sudo chown bhaakens:bhaakens /home/bhaakens/.ssh
-		sudo touch /home/bhaakens/.ssh/authorized_keys
-		sudo echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCbsnw0hVNFJ1zpE6hhNueGBeQV3MUwyhUJKTzbFMmtN1C26R74Ss8faZ+0xxFrQ8p5lvNY4uaxs7MiEl2wxtrd9ouk8zrwMt/9sH+5JVo0lV1MiRRp+d/iDDECGrVvPC6U12aYEzGNiCCb1uMP4ESpcCDB0ov/jOTF319KbIhEs5Sc1umPN71MXipBL3/F7sXqnZzoc7NNXDdncFXYKotdZhNEQ5HeAI92pANdgZ0BUA1yhMIXQFozuLugs2IZ1KKZ5rEEi86Bpuj1yvJomQ11gP9ETn3onhTVJn/BXS8HDCPwUhQ+4eRSDlqkrokp30yYL/rau3LY1b1Alr0qJHql== brandon@laptop'>/home/bhaakens/.ssh/authorized_keys
-		sudo chown bhaakens:bhaakens /home/bhaakens/.ssh/authorized_keys
-	fi
-
-
 case $1 in
 start)
         ;;
