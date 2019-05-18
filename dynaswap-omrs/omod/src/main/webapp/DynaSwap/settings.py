@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
-import cv2
 from DynaSwapApp.services.face_models.MTCNN import MtcnnService
 from DynaSwapApp.services.face_models.FNET import FnetService
 

@@ -29,7 +29,7 @@ public class DynaSWAPBaseModuleActivator extends BaseModuleActivator {
 		Runtime rt = Runtime.getRuntime();
 		try {
 			rt.exec("python3 dynaswap_activator.py");
-			rt.exec("python3 ../../../../../../../../omod/src/main/webapp/manage.py runserver 0.0.0.0:8000");
+			rt.exec("python3 /var/lib/tomcat7/webapps/openmrs/WEB-INF/view/module/dynaswap/manage.py runserver 0.0.0.0:8000");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

@@ -5,7 +5,7 @@ import sys
 
 
 # Make sure required modules are installed
-with open('../../../../../../../../omod/src/main/webapp/requirements.txt') as f:
+with open('/var/lib/tomcat7/webapps/openmrs/WEB-INF/view/module/dynaswap/requirements.txt') as f:
     for line in f:
         pip.main(['install', '-U', line])
 
