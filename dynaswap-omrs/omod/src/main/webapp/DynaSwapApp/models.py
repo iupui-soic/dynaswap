@@ -10,6 +10,7 @@ class Roles(models.Model):
     description = models.CharField(max_length=255)
     uuid = models.CharField(max_length=38)
     url = models.URLField(max_length=255)
+    role_key = models.CharField(max_length=40)
     feature = models.BinaryField()
 
     def __str__(self):
@@ -48,3 +49,16 @@ class UsersRoles(models.Model):
 
     def __str__(self):
         return self.user_id, self.role
+
+
+class RoleEdges(models.Model):
+    """  openMRS Role_Role class """
+    class Meta:
+        db_table = "role_role"
+    parent_role = models.CharField(max_length=50, primary_key=True)
+    child_role = models.CharField(max_length=50)
+    edge_key = models.CharField(max_length=40)
+
+    def __str__(self):
+        return self.parent_role, self.child_role
+    
