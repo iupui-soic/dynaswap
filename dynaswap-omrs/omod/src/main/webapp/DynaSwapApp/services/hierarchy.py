@@ -5,12 +5,12 @@ from DynaSwapApp.models import RoleEdges
 #class of roles
 class Node:
 
-    def __init__(self, roleName, roleDesc, rolePublicID, privateKey):
+    def __init__(self, roleName, roleDesc, rolePublicID, privateKey, secondKey):
         self.roleName = roleName
         self.roleDesc = roleDesc
         self.rolePublicID = rolePublicID
         self.privateKey = privateKey
-        #compute the second key
+        self.secondKey = secondKey
         self.edges = dict()
 
 
@@ -38,7 +38,7 @@ class HierarchyGraph:
         #or just use the name of the role as roleID
 
     #add a new role
-    def addRole(self, roleName, roleDesc, rolePublicID, privateKey):
+    def addRole(self, roleName, roleDesc, rolePublicID, privateKey, secondKey):
 
 
     #read data from database and add roles and edges
