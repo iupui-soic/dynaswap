@@ -2,6 +2,7 @@ from collections import defaultdict
 from DynaSwapApp.models import Roles
 from DynaSwapApp.models import RoleEdges
 import hashlib
+import sys
 
 # Not sure if there is a way to hash using multiple inputs
 # So I am just creating a helper function to hash multiple values into one hash
@@ -57,7 +58,12 @@ class HierarchyGraph:
 
     #add a new role
     def addRole(self, roleName, roleDesc):
-        pass
+        publicIDHex = hashlib.md5(time.time()).hexdigest()
+        pubid = publicIDHex.decode('hex')
+        privateKeyHex = hashlib.md5(round(time.time() * 1000)).hexdigest()
+        privateKey = privateKeyHex.decode('hex')
+        accessKey = self.hashMultipleToOne([pubid, privateKey])
+        Roles(role=roleName, uuid=pubid, role_key=privateKey, role_second_key=accessKey).save()
 
 
     #read data from database and add roles and edges
@@ -73,17 +79,16 @@ class HierarchyGraph:
         # adds to recursion stack 
         visited[roleID] = True
         recStack[roleID] = True
-  
+
         # Recur for all neighbours 
-        # if any neighbour is visited and in  
-        # recStack then graph is cyclic 
-        for neighbour in self.nodes[roleID].edges.keys(): 
-            if !visited[neighbour]: 
-                if self.isCyclicUtil(neighbour, visited, recStack): 
+        # if any neighbour is visited and in recStack then graph is cyclic 
+        for neighbour in self.nodes[roleID].edges.keys():
+            if visited[neighbour] == False:
+                if self.isCyclicUtil(neighbour, visited, recStack):
                     return True
-            elif recStack[neighbour]: 
+            elif recStack[neighbour]:
                 return True
-  
+
         # The node needs to be poped from  
         # recursion stack before function ends 
         recStack[roleID] = False
@@ -97,7 +102,7 @@ class HierarchyGraph:
             visited[roleID] = False
         recStack = visited.copy()
         for roleID in self.nodes.keys(): 
-            if !visited[roleID]: 
+            if visited[roleID] == False: 
                 if self.isCyclicUtil(roleID,visited,recStack): 
                     return True
         return False
@@ -106,18 +111,20 @@ class HierarchyGraph:
     #update the public ID and access key of the role
     def updatePublicID(self, roleID):
         self.nodes[roleID].rolePublicID = hashlib.md5(time.time()).hexdigest()
-        self.nodes[roleID].secondKey = hashlib.md5(self.nodes[roleID].rolePublicID ^ self.nodes[roleID].privateKey)
+        self.nodes[roleID].secondKey = hashMultipleToOne(self.nodes[roleID].rolePublicID, self.nodes[roleID].privateKey)
+        Roles.objects.filter(role=roleID).update(uuid=self.nodes[roleID].rolePublicID, role_second_key=self.nodes[roleID].secondKey)
 
 
     def delEdge(self, parentRoleID, childRoleID):
         #generate a new ID for parent and compute new k
         self.nodes[parentRoleID].edges.pop(childRoleID)
+        #update publicID for all the decs of role
+        #for all the roles involved, find the pred sets and update the edge keys
         for roles in self.findDesc(childRoleID).keys():
             self.updatePublicID(roles)
-            Roles.objects.filter(role=roles).update(uuid=self.nodes[roles].rolePublicID, role_second_key=self.nodes[roles].secondKey)
             for rolePred in self.findPred(roles).keys():
-                self.nodes[rolePred].edges[roles].edgeKey = 
-                RoleEdges.objects.filter().update(edge_key) = self.nodes[rolePred].edges[roles].edgeKey
+                self.nodes[rolePred].edges[roles].edgeKey = self.calcEdgeKey(self.nodes[rolePred].secondKey, self.nodes[roles].secondKey, self.nodes[roles].rolePulicID)
+                RoleEdges.objects.filter().update(edge_key=self.nodes[rolePred].edges[roles].edgeKey)
         #delete record in database
         RoleEdge.objects.filter(parent_role=parentRoleID, child_role=childRoleID).delete()
 
@@ -135,16 +142,18 @@ class HierarchyGraph:
         self.nodes.pop(RoleID)
         Roles.objects.filter(role=RoleID).delete()
 
+
+
     def accessRole(self, curRoleID, targetRoleID):
-        #DFS to the role wanted
-        #either find the role first then compare keys along the path, or compare keys in DFS
+        #DFS to the role wanted with key decoding
         if curRoleID == targetRoleID:
             return True
         for children in self.nodes[curRoleID].edges.keys():
-            if self.nodes[curRoleID].edges[children].edgeKey ^ Hash(self.nodes[curRoleID].secondKey, self.nodes[children].rolePublicID) == self.nodes[children].secondKey:
+            if xor_two_strings(self.nodes[curRoleID].edges[children].edgeKey, hashMultipleToOne(self.nodes[curRoleID].secondKey, self.nodes[children].rolePublicID)) == self.nodes[children].secondKey:
                 if self.accessRole(children, targetRoleID):
                     return True
         return False
+        
         
     #determine if there is a path from origin to the target role
     def havePath(self, originRoleID, targetRoleID):
@@ -160,7 +169,7 @@ class HierarchyGraph:
     def findDesc(self, originRoleID):
         desc = dict()
         for roles in self.nodes.keys():
-            if (!desc.has_key(roles) && self.havePath(originRoleID, roles)):
+            if (desc.has_key(roles) == False && self.havePath(originRoleID, roles)):
                 desc[roles] = False
         return desc
 
@@ -169,7 +178,7 @@ class HierarchyGraph:
     def findPred(self, originRoleID):
         pred = dict()
         for roles in self.nodes.keys():
-            if (!pred.has_key(roles) && self.nodes[roles].edges.has_key(originRoleID)):
+            if (pred.has_key(roles) == False && self.nodes[roles].edges.has_key(originRoleID)):
                 pred[roles] = False
         return pred
         
