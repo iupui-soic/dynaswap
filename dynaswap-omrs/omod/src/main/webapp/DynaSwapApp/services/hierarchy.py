@@ -110,7 +110,7 @@ class HierarchyGraph:
     #update the public ID and access key of the role
     def updatePublicID(self, roleID):
         self.nodes[roleID].rolePublicID = hashlib.md5(time.time()).hexdigest()
-        self.nodes[roleID].secondKey = hashMultipleToOne(self.nodes[roleID].rolePublicID, self.nodes[roleID].privateKey)
+        self.nodes[roleID].secondKey = hashMultipleToOne([self.nodes[roleID].rolePublicID, self.nodes[roleID].privateKey])
         Roles.objects.filter(role=roleID).update(uuid=self.nodes[roleID].rolePublicID, role_second_key=self.nodes[roleID].secondKey)
 
 
@@ -168,7 +168,7 @@ class HierarchyGraph:
     def findDesc(self, originRoleID):
         desc = dict()
         for roles in self.nodes.keys():
-            if (desc.has_key(roles) == False && self.havePath(originRoleID, roles)):
+            if ((desc.has_key(roles) == False) and (self.havePath(originRoleID, roles))):
                 desc[roles] = False
         return desc
 
@@ -177,7 +177,7 @@ class HierarchyGraph:
     def findPred(self, originRoleID):
         pred = dict()
         for roles in self.nodes.keys():
-            if (pred.has_key(roles) == False && self.nodes[roles].edges.has_key(originRoleID)):
+            if ((pred.has_key(roles) == False) and (self.nodes[roles].edges.has_key(originRoleID))):
                 pred[roles] = False
         return pred
         
