@@ -4,12 +4,11 @@ from DynaSwapApp.models import RoleEdges
 import hashlib
 import sys
 
-# Not sure if there is a way to hash using multiple inputs
-# So I am just creating a helper function to hash multiple values into one hash
+# concat values together and then hash
 def hashMultipleToOne(listOfValuesToHash):
     concatedHashes = ""
     for value in listOfValuesToHash:
-        concatedHashes += hashlib.sha256(value.encode('utf-8')).hexdigest()
+        concatedHashes += value
     result = hashlib.sha256(concatedHashes.encode('utf-8')).hexdigest()
     return result
 
