@@ -19,7 +19,6 @@ def xor_two_strings(str1, str2):
 
 #class of roles
 class Node:
-
     def __init__(self, roleName, roleDesc, rolePublicID, privateKey, secondKey):
         self.roleName = roleName
         self.roleDesc = roleDesc
@@ -35,20 +34,31 @@ class Edge:
         self.edgeKey = edgeKey
 
 
-class HierarchyGraph:
-
-    def __init__(self, curRole, keyLength):
-        self.roleNum = 0
-        #counter for assign roleID, or just get rid of it and use roleName
-        self.curRole = curRole
-        self.nodes = dict()
+class KeyManagement:
+    def __init__(self, keyLength):
         self.keyLength = keyLength
-    
+
     def calcEdgeKey(self, parentPrivateKey, childPrivateKey, childLabel):
         hashed = hashMultipleToOne([parentPrivateKey, childLabel])
         edgeKey = xor_two_strings(childPrivateKey, hashed)
         # maybe take the rightmost 128 bits of edgeKey instead of using mod part of equation from paper
-        return edgeKey       
+        return edgeKey 
+    
+    # Not sure if public and private key generation should be combined
+    # os.urandom() can be used instead of time.time() to generate
+    def generatePublicId(self):
+        pass
+    
+    def generatePrivateId(self):
+        pass
+
+
+class HierarchyGraph:
+    def __init__(self, curRole):
+        self.roleNum = 0
+        #counter for assign roleID, or just get rid of it and use roleName
+        self.curRole = curRole
+        self.nodes = dict()
 
     #add edge to the graph
     def addEdge(self, parentRoleName, childRoleName, edgeKey):
@@ -63,7 +73,6 @@ class HierarchyGraph:
         privateKey = privateKeyHex.decode('hex')
         accessKey = self.hashMultipleToOne([pubid, privateKey])
         Roles(role=roleName, uuid=pubid, role_key=privateKey, role_second_key=accessKey).save()
-
 
     #read data from database and add roles and edges
     def createGraph(self):
@@ -105,14 +114,12 @@ class HierarchyGraph:
                 if self.isCyclicUtil(roleID,visited,recStack): 
                     return True
         return False
-    
 
     #update the public ID and access key of the role
     def updatePublicID(self, roleID):
         self.nodes[roleID].rolePublicID = hashlib.md5(time.time()).hexdigest()
         self.nodes[roleID].secondKey = hashMultipleToOne([self.nodes[roleID].rolePublicID, self.nodes[roleID].privateKey])
         Roles.objects.filter(role=roleID).update(uuid=self.nodes[roleID].rolePublicID, role_second_key=self.nodes[roleID].secondKey)
-
 
     def delEdge(self, parentRoleID, childRoleID):
         #generate a new ID for parent and compute new k
@@ -127,7 +134,6 @@ class HierarchyGraph:
         #delete record in database
         RoleEdge.objects.filter(parent_role=parentRoleID, child_role=childRoleID).delete()
 
-    
     def delRole(self, RoleID):
         #we may want another dict to store the parents of each role to make del easier
         for (roleID, roleObj) in self.nodes.items():
@@ -141,8 +147,6 @@ class HierarchyGraph:
         self.nodes.pop(RoleID)
         Roles.objects.filter(role=RoleID).delete()
 
-
-
     def accessRole(self, curRoleID, targetRoleID):
         #DFS to the role wanted with key decoding
         if curRoleID == targetRoleID:
@@ -153,7 +157,6 @@ class HierarchyGraph:
                     return True
         return False
         
-        
     #determine if there is a path from origin to the target role
     def havePath(self, originRoleID, targetRoleID):
         if originRoleID == targetRoleID:
@@ -162,7 +165,6 @@ class HierarchyGraph:
             if self.havePath(children, targetRoleID):
                 return True
         return False
-
     
     #return the list of descendants of the role
     def findDesc(self, originRoleID):
@@ -171,7 +173,6 @@ class HierarchyGraph:
             if ((desc.has_key(roles) == False) and (self.havePath(originRoleID, roles))):
                 desc[roles] = False
         return desc
-
     
     #return the list of immediate predecessors of the role
     def findPred(self, originRoleID):
