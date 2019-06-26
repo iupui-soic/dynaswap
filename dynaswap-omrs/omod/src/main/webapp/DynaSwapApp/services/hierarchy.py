@@ -3,6 +3,7 @@ from DynaSwapApp.models import Roles
 from DynaSwapApp.models import RoleEdges
 import hashlib
 import sys
+import os
 
 # concat values together and then hash
 def hashMultipleToOne(listOfValuesToHash):
@@ -44,13 +45,15 @@ class KeyManagement:
         # maybe take the rightmost 128 bits of edgeKey instead of using mod part of equation from paper
         return edgeKey 
     
-    # Not sure if public and private key generation should be combined
-    # os.urandom() can be used instead of time.time() to generate
     def generatePublicId(self):
-        pass
+        publicIDHex = hashlib.md5(os.urandom(self.keyLength)).hexdigest()
+        pubid = publicIDHex.decode('hex')
+        return pubid
     
     def generatePrivateId(self):
-        pass
+        privateKeyHex = hashlib.md5(os.urandom(self.keyLength)).hexdigest()
+        privateKey = privateKeyHex.decode('hex')
+        return privateKey
 
 
 class HierarchyGraph:
@@ -66,11 +69,7 @@ class HierarchyGraph:
         self.nodes[parentRoleName].edges[childRoleName] = newEdge
 
     #add a new role
-    def addRole(self, roleName, roleDesc):
-        publicIDHex = hashlib.md5(time.time()).hexdigest()
-        pubid = publicIDHex.decode('hex')
-        privateKeyHex = hashlib.md5(round(time.time() * 1000)).hexdigest()
-        privateKey = privateKeyHex.decode('hex')
+    def addRole(self, roleName, roleDesc, pubid, privateKey):
         accessKey = self.hashMultipleToOne([pubid, privateKey])
         Roles(role=roleName, uuid=pubid, role_key=privateKey, role_second_key=accessKey).save()
 
@@ -116,8 +115,7 @@ class HierarchyGraph:
         return False
 
     #update the public ID and access key of the role
-    def updatePublicID(self, roleID):
-        self.nodes[roleID].rolePublicID = hashlib.md5(time.time()).hexdigest()
+    def updatePublicID(self, roleID, rolePublicId):
         self.nodes[roleID].secondKey = hashMultipleToOne([self.nodes[roleID].rolePublicID, self.nodes[roleID].privateKey])
         Roles.objects.filter(role=roleID).update(uuid=self.nodes[roleID].rolePublicID, role_second_key=self.nodes[roleID].secondKey)
 
