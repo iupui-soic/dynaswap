@@ -11,6 +11,9 @@ class Roles(models.Model):
     uuid = models.CharField(max_length=38)
     url = models.URLField(max_length=255)
     role_key = models.CharField(max_length=40)
+    # Adding second key for now because this is needed for hierarchy.py. May need to be manually added to database
+    # Increasing length for second key for now. Based on the current hash function more than 40 chars is needed but this is subject to change in the future
+    role_second_key = models.CharField(max_length=100)
     feature = models.BinaryField()
 
     def __str__(self):

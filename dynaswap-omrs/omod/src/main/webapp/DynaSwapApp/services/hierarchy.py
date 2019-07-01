@@ -70,8 +70,10 @@ class HierarchyGraph:
 
     #add a new role
     def addRole(self, roleName, roleDesc, pubid, privateKey):
-        accessKey = self.hashMultipleToOne([pubid, privateKey])
-        Roles(role=roleName, uuid=pubid, role_key=privateKey, role_second_key=accessKey).save()
+        accessKey = hashMultipleToOne([pubid, privateKey])
+        # Not sure if this is actually saving correctly        
+        Roles(role=roleName, description=roleDesc, uuid=pubid, role_key=privateKey, role_second_key=accessKey).save()
+        # Does this method also need to add a node to the graph?
 
     #read data from database and add roles and edges
     def createGraph(self):
