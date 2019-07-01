@@ -44,6 +44,7 @@ class HierarchyGraphTests(TestCase):
         privateKey = "456"
         secondKey = "789"
         Roles(role=roleName, description=roleDesc, uuid=pubid, role_key=privateKey, role_second_key=secondKey).save()
+        Roles(role="nurse", description="nurse desc", uuid="456", role_key="456", role_second_key=secondKey).save()
         self.HierarchyGraph.nodes[roleName] = Node(roleName, roleDesc, pubid, privateKey, secondKey)
         # Just using the sha256 hash of 'test' string for edge key right now
         self.HierarchyGraph.addEdge("doctor", "nurse", "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08")
@@ -70,13 +71,13 @@ class HierarchyGraphTests(TestCase):
         # Not sure what this value should be right now so just check if there is something there
         self.assertTrue(newRole.role_second_key)
 
-    def test_createGraph(self):
-        """Test basic case of createGraph"""
-        # create some test roles and edges with fake values to build the graph
-        self.HierarchyGraph.addRole("test1", "test1 description", "1", "testPrivateKey1")
-        self.HierarchyGraph.addRole("test2", "test2 description", "2", "testPrivateKey2")
-        self.HierarchyGraph.addRole("test3", "test3 description", "3", "testPrivateKey3")
-        self.HierarchyGraph.addEdge("test1", "test2", "test1to2edgeKey")
-        self.HierarchyGraph.addEdge("test1", "test3", "test1to3edgeKey")
-        self.HierarchyGraph.createGraph()
+    # def test_createGraph(self):
+    #     """Test basic case of createGraph"""
+    #     # create some test roles and edges with fake values to build the graph
+    #     self.HierarchyGraph.addRole("test1", "test1 description", "1", "testPrivateKey1")
+    #     self.HierarchyGraph.addRole("test2", "test2 description", "2", "testPrivateKey2")
+    #     self.HierarchyGraph.addRole("test3", "test3 description", "3", "testPrivateKey3")
+    #     self.HierarchyGraph.addEdge("test1", "test2", "test1to2edgeKey")
+    #     self.HierarchyGraph.addEdge("test1", "test3", "test1to3edgeKey")
+    #     self.HierarchyGraph.createGraph()
 

@@ -67,7 +67,11 @@ class HierarchyGraph:
     def addEdge(self, parentRoleName, childRoleName, edgeKey):
         # Save the role edge to the database
         # An Edge object will be created later when createGraph is called
-        RoleEdges(parent_role=parentRoleName, child_role=childRoleName, edge_key=edgeKey).save()
+        parentRole = Roles.objects.get(role=parentRoleName)
+        print(parentRole)
+        childRole = Roles.objects.get(role=childRoleName)
+        print(childRole)
+        RoleEdges(parent_role=parentRole, child_role=childRole, edge_key=edgeKey).save()
 
     #add a new role
     def addRole(self, roleName, roleDesc, pubid, privateKey):

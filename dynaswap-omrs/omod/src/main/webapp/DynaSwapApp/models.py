@@ -57,9 +57,9 @@ class UsersRoles(models.Model):
 class RoleEdges(models.Model):
     """  openMRS Role_Role class """
     class Meta:
-        db_table = "role_role"
-    parent_role = models.CharField(max_length=50, primary_key=True)
-    child_role = models.CharField(max_length=50)
+        db_table = "role_roletesttwo"
+    parent_role = models.ForeignKey(Roles, db_column='parent_role', related_name="+", on_delete=models.DO_NOTHING)
+    child_role = models.ForeignKey(Roles, db_column='child_role', related_name="+", on_delete=models.DO_NOTHING)
     # Making the length longer for now
     edge_key = models.CharField(max_length=100)
 
