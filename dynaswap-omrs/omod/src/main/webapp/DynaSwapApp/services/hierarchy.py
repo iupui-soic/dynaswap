@@ -65,22 +65,22 @@ class HierarchyGraph:
 
     #add edge to the graph
     def addEdge(self, parentRoleName, childRoleName, edgeKey):
-        newEdge = Edge(edgeKey)
-        self.nodes[parentRoleName].edges[childRoleName] = newEdge
+        # Save the role edge to the database
+        # An Edge object will be created later when createGraph is called
+        RoleEdges(parent_role=parentRoleName, child_role=childRoleName, edge_key=edgeKey).save()
 
     #add a new role
     def addRole(self, roleName, roleDesc, pubid, privateKey):
         accessKey = hashMultipleToOne([pubid, privateKey])
-        # Not sure if this is actually saving correctly        
+        # Not sure if this is actually saving correctly because of our weird test database setup
         Roles(role=roleName, description=roleDesc, uuid=pubid, role_key=privateKey, role_second_key=accessKey).save()
-        # Does this method also need to add a node to the graph?
 
     #read data from database and add roles and edges
     def createGraph(self):
         for roles in Roles.objects.all():
             self.nodes[roles.role] = Node(roles.role, roles.description, roles.uuid, roles.role_key, roles.role_second_key)
         for edges in RoleEdges.objects.all():
-            self.nodes[edges.parent_role].edges[edges.child_role] = Edge(edge_key)
+            self.nodes[edges.parent_role].edges[edges.child_role] = Edge(edges.edge_key)
 
     #DFS from the specific role
     def isCyclicUtil(self, roleID, visited, recStack):

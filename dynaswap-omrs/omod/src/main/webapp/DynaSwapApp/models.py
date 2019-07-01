@@ -60,7 +60,8 @@ class RoleEdges(models.Model):
         db_table = "role_role"
     parent_role = models.CharField(max_length=50, primary_key=True)
     child_role = models.CharField(max_length=50)
-    edge_key = models.CharField(max_length=40)
+    # Making the length longer for now
+    edge_key = models.CharField(max_length=100)
 
     def __str__(self):
         return self.parent_role, self.child_role
