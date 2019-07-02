@@ -65,18 +65,23 @@ class HierarchyGraph:
 
     #add edge to the graph
     def addEdge(self, parentRoleName, childRoleName, edgeKey):
-        # Save the role edge to the database
-        # An Edge object will be created later when createGraph is called
+        # Need to edit this function so that it uses isCyclic to make sure that adding an edge doesn't violate DAG
         parentRole = Roles.objects.get(role=parentRoleName)
-        print(parentRole)
         childRole = Roles.objects.get(role=childRoleName)
-        print(childRole)
+        # Create new edge object for local graph
+        newEdge = Edge(edgeKey)
+        # Use the names of parent and child roles for key names
+        self.nodes[parentRole.role].edges[childRole.role] = newEdge
         RoleEdges(parent_role=parentRole, child_role=childRole, edge_key=edgeKey).save()
 
     #add a new role
     def addRole(self, roleName, roleDesc, pubid, privateKey):
         accessKey = hashMultipleToOne([pubid, privateKey])
-        # Not sure if this is actually saving correctly because of our weird test database setup
+        # Is accessKey the correct parameter here? What is secondKey supposed to be in Node
+        newNode = Node(roleName, roleDesc, pubid, privateKey, accessKey)
+        # Add new node to local graph
+        self.nodes[roleName] = newNode
+        # Save node information to the database
         Roles(role=roleName, description=roleDesc, uuid=pubid, role_key=privateKey, role_second_key=accessKey).save()
 
     #read data from database and add roles and edges

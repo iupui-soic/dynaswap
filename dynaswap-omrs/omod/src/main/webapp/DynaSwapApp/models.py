@@ -64,5 +64,5 @@ class RoleEdges(models.Model):
     edge_key = models.CharField(max_length=100)
 
     def __str__(self):
-        return self.parent_role, self.child_role
+        return "{},{}".format(self.parent_role, self.child_role)
     
