@@ -5,6 +5,12 @@ import hashlib
 import sys
 import os
 
+"""
+Note about notation: 
+    private key is 'k' in the paper
+    secret key is 'k^' is k hat or k prime
+"""
+
 # concat values together and then hash
 def hashMultipleToOne(listOfValuesToHash):
     concatedHashes = ""
@@ -20,12 +26,12 @@ def xor_two_strings(str1, str2):
 
 #class of roles
 class Node:
-    def __init__(self, roleName, roleDesc, rolePublicID, privateKey, secondKey):
+    def __init__(self, roleName, roleDesc, rolePublicID, secretKey, privateKey):
         self.roleName = roleName
         self.roleDesc = roleDesc
         self.rolePublicID = rolePublicID
+        self.secretKey = secretKey
         self.privateKey = privateKey
-        self.secondKey = secondKey
         self.edges = dict()
 
 
@@ -58,10 +64,9 @@ class KeyManagement:
 
 class HierarchyGraph:
     def __init__(self, curRole):
-        self.roleNum = 0
-        #counter for assign roleID, or just get rid of it and use roleName
         self.curRole = curRole
         self.nodes = dict()
+        self.KeyManagement = KeyManagement(128)
 
     #add edge to the graph
     def addEdge(self, parentRoleName, childRoleName, edgeKey):
@@ -82,14 +87,14 @@ class HierarchyGraph:
             raise CyclicError
 
     #add a new role
-    def addRole(self, roleName, roleDesc, pubid, privateKey):
-        accessKey = hashMultipleToOne([pubid, privateKey])
+    def addRole(self, roleName, roleDesc, pubid, secretKey):
+        privateKey = hashMultipleToOne([pubid, secretKey])
         # Is accessKey the correct parameter here? What is secondKey supposed to be in Node
-        newNode = Node(roleName, roleDesc, pubid, privateKey, accessKey)
+        newNode = Node(roleName, roleDesc, pubid, secretKey, privateKey)
         # Add new node to local graph
         self.nodes[roleName] = newNode
         # Save node information to the database
-        Roles(role=roleName, description=roleDesc, uuid=pubid, role_key=privateKey, role_second_key=accessKey).save()
+        Roles(role=roleName, description=roleDesc, uuid=pubid, role_key=secretKey, role_second_key=privateKey).save()
 
     #read data from database and add roles and edges
     def createGraph(self):
@@ -133,9 +138,11 @@ class HierarchyGraph:
         return False
 
     #update the public ID and access key of the role
-    def updatePublicID(self, roleID, rolePublicId):
-        self.nodes[roleID].secondKey = hashMultipleToOne([self.nodes[roleID].rolePublicID, self.nodes[roleID].privateKey])
-        Roles.objects.filter(role=roleID).update(uuid=self.nodes[roleID].rolePublicID, role_second_key=self.nodes[roleID].secondKey)
+    def updatePublicID(self, roleID):
+        newUUID = self.KeyManagement.generatePublicId()
+        self.nodes[roleID].uuid = newUUID
+        self.nodes[roleID].privateKey = hashMultipleToOne([self.nodes[roleID].uuid, self.nodes[roleID].secretKey])
+        Roles.objects.filter(role=roleID).update(uuid=self.nodes[roleID].uuid, role_second_key=self.nodes[roleID].privateKey)
 
     def delEdge(self, parentRoleID, childRoleID):
         #generate a new ID for parent and compute new k
@@ -145,7 +152,7 @@ class HierarchyGraph:
         for roles in self.findDesc(childRoleID).keys():
             self.updatePublicID(roles)
             for rolePred in self.findPred(roles).keys():
-                self.nodes[rolePred].edges[roles].edgeKey = self.calcEdgeKey(self.nodes[rolePred].secondKey, self.nodes[roles].secondKey, self.nodes[roles].rolePulicID)
+                self.nodes[rolePred].edges[roles].edgeKey = self.calcEdgeKey(self.nodes[rolePred].privateKey, self.nodes[roles].privateKey, self.nodes[roles].rolePulicID)
                 RoleEdges.objects.filter().update(edge_key=self.nodes[rolePred].edges[roles].edgeKey)
         #delete record in database
         RoleEdge.objects.filter(parent_role=parentRoleID, child_role=childRoleID).delete()
@@ -168,7 +175,7 @@ class HierarchyGraph:
         if curRoleID == targetRoleID:
             return True
         for children in self.nodes[curRoleID].edges.keys():
-            if xor_two_strings(self.nodes[curRoleID].edges[children].edgeKey, hashMultipleToOne(self.nodes[curRoleID].secondKey, self.nodes[children].rolePublicID)) == self.nodes[children].secondKey:
+            if xor_two_strings(self.nodes[curRoleID].edges[children].edgeKey, hashMultipleToOne(self.nodes[curRoleID].privateKey, self.nodes[children].rolePublicID)) == self.nodes[children].privateKey:
                 if self.accessRole(children, targetRoleID):
                     return True
         return False
