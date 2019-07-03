@@ -96,7 +96,7 @@ class HierarchyGraph:
         for roles in Roles.objects.all():
             self.nodes[roles.role] = Node(roles.role, roles.description, roles.uuid, roles.role_key, roles.role_second_key)
         for edges in RoleEdges.objects.all():
-            self.nodes[edges.parent_role].edges[edges.child_role] = Edge(edges.edge_key)
+            self.nodes[edges.parent_role.role].edges[edges.child_role.role] = Edge(edges.edge_key)
 
     #DFS from the specific role
     def isCyclicUtil(self, roleID, visited, recStack):
@@ -146,9 +146,9 @@ class HierarchyGraph:
             self.updatePublicID(roles)
             for rolePred in self.findPred(roles).keys():
                 self.nodes[rolePred].edges[roles].edgeKey = self.calcEdgeKey(self.nodes[rolePred].secondKey, self.nodes[roles].secondKey, self.nodes[roles].rolePulicID)
-                RoleEdges.objects.filter().update(edge_key=self.nodes[rolePred].edges[roles].edgeKey)
+                RoleEdges.objects.filter(parent_role.role=rolePred, child_role.role=roles).update(edge_key=self.nodes[rolePred].edges[roles].edgeKey)
         #delete record in database
-        RoleEdge.objects.filter(parent_role=parentRoleID, child_role=childRoleID).delete()
+        RoleEdge.objects.filter(parent_role.role=parentRoleID, child_role.role=childRoleID).delete()
 
     def delRole(self, RoleID):
         #we may want another dict to store the parents of each role to make del easier
