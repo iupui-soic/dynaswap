@@ -72,7 +72,14 @@ class HierarchyGraph:
         newEdge = Edge(edgeKey)
         # Use the names of parent and child roles for key names
         self.nodes[parentRole.role].edges[childRole.role] = newEdge
-        RoleEdges(parent_role=parentRole, child_role=childRole, edge_key=edgeKey).save()
+        # After adding edge check to make sure it isn't cylic (this graph should be a DAG)
+        if not self.isCyclic():
+            # If it isn't cyclic then it can be saved to the database
+            RoleEdges(parent_role=parentRole, child_role=childRole, edge_key=edgeKey).save()
+        # Otherwise it's cyclic and we need to remove it
+        else:
+            del self.nodes[parentRole.role].edges[childRole.role]
+            raise CyclicError
 
     #add a new role
     def addRole(self, roleName, roleDesc, pubid, privateKey):
@@ -191,3 +198,7 @@ class HierarchyGraph:
                 pred[roles] = False
         return pred
         
+
+# Should be moved to a file for exceptions at some point
+class CyclicError(Exception):
+    pass
