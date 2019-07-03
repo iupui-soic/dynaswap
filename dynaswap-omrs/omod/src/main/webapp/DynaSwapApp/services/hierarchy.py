@@ -56,10 +56,10 @@ class KeyManagement:
         pubid = publicIDHex.decode('hex')
         return pubid
     
-    def generatePrivateId(self):
-        privateKeyHex = hashlib.md5(os.urandom(self.keyLength)).hexdigest()
-        privateKey = privateKeyHex.decode('hex')
-        return privateKey
+    def generateSecretKey(self):
+        secretKeyHex = hashlib.md5(os.urandom(self.keyLength)).hexdigest()
+        secretKey = secretKeyHex.decode('hex')
+        return secretKey
 
 
 class HierarchyGraph:
@@ -143,6 +143,12 @@ class HierarchyGraph:
         self.nodes[roleID].uuid = newUUID
         self.nodes[roleID].privateKey = hashMultipleToOne([self.nodes[roleID].uuid, self.nodes[roleID].secretKey])
         Roles.objects.filter(role=roleID).update(uuid=self.nodes[roleID].uuid, role_second_key=self.nodes[roleID].privateKey)
+
+    def updateSecretKey(self, roleID):
+        newSecretKey = self.KeyManagement.generateSecretKey()
+        self.nodes[roleID].secretKey = newSecretKey
+        self.nodes[roleID].privateKey = hashMultipleToOne([self.nodes[roleID].uuid, self.nodes[roleID].secretKey])
+        Roles.objects.filter(role=roleID).update(role_second_key=self.nodes[roleID].privateKey, role_key=self.nodes[roleID].secretKey)
 
     def delEdge(self, parentRoleID, childRoleID):
         #generate a new ID for parent and compute new k
