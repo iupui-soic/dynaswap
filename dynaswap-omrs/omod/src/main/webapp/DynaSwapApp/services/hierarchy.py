@@ -151,21 +151,21 @@ class HierarchyGraph:
         Roles.objects.filter(role=roleID).update(role_second_key=self.nodes[roleID].privateKey, role_key=self.nodes[roleID].secretKey)
 
     def delEdge(self, parentRoleID, childRoleID):
-        #generate a new ID for parent and compute new k
-        self.nodes[parentRoleID].edges.pop(childRoleID)
-        #update publicID for all the decs of role
-        #for all the roles involved, find the pred sets and update the edge keys
-        for roles in self.findDesc(childRoleID).keys():
-            self.updatePublicID(roles)
-            for rolePred in self.findPred(roles).keys():
-                self.nodes[rolePred].edges[roles].edgeKey = self.calcEdgeKey(self.nodes[rolePred].secondKey, self.nodes[roles].secondKey, self.nodes[roles].rolePulicID)
-                parentRole = Roles.objects.filter(role=rolePred)
-                childRole = Roles.objects.filter(role=roles)
-                RoleEdges.objects.filter(parent_role=parentRole, child_role=childRole).update(edge_key=self.nodes[rolePred].edges[roles].edgeKey)
-        #delete record in database
-        parentRole = Roles.objects.filter(role=parentRoleID)
-        childRole = Roles.objects.filter(role=childRoleID)
-        RoleEdge.objects.filter(parent_role=parentRole, child_role=childRole).delete()
+            #generate a new ID for parent and compute new k
+            self.nodes[parentRoleID].edges.pop(childRoleID)
+            #update publicID for all the decs of role
+            #for all the roles involved, find the pred sets and update the edge keys
+            for roles in self.findDesc(childRoleID).keys():
+                self.updatePublicID(roles)
+                for rolePred in self.findPred(roles).keys():
+                    self.nodes[rolePred].edges[roles].edgeKey = self.calcEdgeKey(self.nodes[rolePred].secondKey, self.nodes[roles].secondKey, self.nodes[roles].rolePulicID)
+                    parentRole = Roles.objects.filter(role=rolePred)
+                    childRole = Roles.objects.filter(role=roles)
+                    RoleEdges.objects.filter(parent_role=parentRole, child_role=childRole).update(edge_key=self.nodes[rolePred].edges[roles].edgeKey)
+            #delete record in database
+            parentRole = Roles.objects.filter(role=parentRoleID)
+            childRole = Roles.objects.filter(role=childRoleID)
+            RoleEdge.objects.filter(parent_role=parentRole, child_role=childRole).delete()
 
     def delRole(self, RoleID):
         #we may want another dict to store the parents of each role to make del easier
@@ -174,7 +174,7 @@ class HierarchyGraph:
                 #del all children edges
                 for childrenRole in roleObj.edges.keys():
                     self.delEdge(roleID, childrenRole)
-            if roleObj.edges.has_key(RoleID):
+            if RoleID in roleObj.edges:
                 #del all parent edges
                 self.delEdge(roleID, RoleID)
         self.nodes.pop(RoleID)
@@ -203,7 +203,7 @@ class HierarchyGraph:
     def findDesc(self, originRoleID):
         desc = dict()
         for roles in self.nodes.keys():
-            if ((desc.has_key(roles) == False) and (self.havePath(originRoleID, roles))):
+            if (roles not in desc) and (self.havePath(originRoleID, roles)):
                 desc[roles] = False
         return desc
     
@@ -211,7 +211,7 @@ class HierarchyGraph:
     def findPred(self, originRoleID):
         pred = dict()
         for roles in self.nodes.keys():
-            if ((pred.has_key(roles) == False) and (self.nodes[roles].edges.has_key(originRoleID))):
+            if (roles not in pred) and (originRoleId in self.nodes[roles].edges):
                 pred[roles] = False
         return pred
         
