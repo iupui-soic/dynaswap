@@ -159,9 +159,13 @@ class HierarchyGraph:
             self.updatePublicID(roles)
             for rolePred in self.findPred(roles).keys():
                 self.nodes[rolePred].edges[roles].edgeKey = self.calcEdgeKey(self.nodes[rolePred].secondKey, self.nodes[roles].secondKey, self.nodes[roles].rolePulicID)
-                RoleEdges.objects.filter(parent_role.role=rolePred, child_role.role=roles).update(edge_key=self.nodes[rolePred].edges[roles].edgeKey)
+                parentRole = Roles.objects.filter(role=rolePred)
+                childRole = Roles.objects.filter(role=roles)
+                RoleEdges.objects.filter(parent_role=parentRole, child_role=childRole).update(edge_key=self.nodes[rolePred].edges[roles].edgeKey)
         #delete record in database
-        RoleEdge.objects.filter(parent_role.role=parentRoleID, child_role.role=childRoleID).delete()
+        parentRole = Roles.objects.filter(role=parentRoleID)
+        childRole = Roles.objects.filter(role=childRoleID)
+        RoleEdge.objects.filter(parent_role=parentRole, child_role=childRole).delete()
 
     def delRole(self, RoleID):
         #we may want another dict to store the parents of each role to make del easier
