@@ -53,13 +53,11 @@ class KeyManagement:
     
     def generatePublicId(self):
         publicIDHex = hashlib.md5(os.urandom(self.keyLength)).hexdigest()
-        pubid = publicIDHex.decode('hex')
-        return pubid
+        return publicIDHex
     
     def generateSecretKey(self):
         secretKeyHex = hashlib.md5(os.urandom(self.keyLength)).hexdigest()
-        secretKey = secretKeyHex.decode('hex')
-        return secretKey
+        return secretKeyHex
 
 
 class HierarchyGraph:
@@ -165,7 +163,7 @@ class HierarchyGraph:
             #delete record in database
             parentRole = Roles.objects.filter(role=parentRoleID)
             childRole = Roles.objects.filter(role=childRoleID)
-            RoleEdge.objects.filter(parent_role=parentRole, child_role=childRole).delete()
+            RoleEdges.objects.filter(parent_role=parentRole, child_role=childRole).delete()
 
     def delRole(self, RoleID):
         #we may want another dict to store the parents of each role to make del easier
@@ -211,7 +209,7 @@ class HierarchyGraph:
     def findPred(self, originRoleID):
         pred = dict()
         for roles in self.nodes.keys():
-            if (roles not in pred) and (originRoleId in self.nodes[roles].edges):
+            if (roles not in pred) and (originRoleID in self.nodes[roles].edges):
                 pred[roles] = False
         return pred
         
