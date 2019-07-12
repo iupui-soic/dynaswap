@@ -68,12 +68,43 @@ class HierarchyGraphTests(TestCase):
         # Make sure that local and database match
         self.assertEquals(newEdgeDatabase.edge_key, newEdgeLocal.edgeKey)
 
+    #Test Deleting Edges
+    def test_delEdge(self):
+        """Delete an existing edge"""
+        roleName1 = "doctor"
+        roleDesc1 = "doc desc"
+        pubid1 = "123"
+        privateKey1 = "456"
+        secondKey1 = "789"
+        # Values for second node
+        roleName2 = "nurse"
+        roleDesc2 = "nurse desc"
+        pubid2 = "456"
+        privateKey2 = "654"
+        secondKey2 = "999"
+        #Create new edge same as test add Edge
+        newEdgeKey = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+
+        Roles(role=roleName1, description=roleDesc1, uuid=pubid1, role_key=privateKey1, role_second_key=secondKey1).save()
+        Roles(role=roleName2, description=roleDesc2, uuid=pubid2, role_key=privateKey2, role_second_key=secondKey2).save()
+        self.HierarchyGraph.nodes[roleName1] = Node(roleName1, roleDesc1, pubid1, privateKey1, secondKey1)
+        self.HierarchyGraph.nodes[roleName2] = Node(roleName2, roleDesc2, pubid2, privateKey2, secondKey2)
+        self.HierarchyGraph.addEdge(roleName1, roleName2, newEdgeKey)
+        newEdgeDatabase = RoleEdges.objects.get(parent_role="doctor")
+        newEdgeLocal = self.HierarchyGraph.nodes[roleName1].edges[roleName2]
+        #del Edge between roles
+        self.HierarchyGraph.delEdge(roleName1, roleName2)
+        self.assertEquals(newEdgeDatabase.edge_key, newEdgeLocal.edgeKey)
+##        
+        
     def test_addEdge_doesnt_exist(self):
         """If the node we are trying to add an edge to doesn't exist we should get a DoesNotExist error"""
         with self.assertRaises(Roles.DoesNotExist):
             self.HierarchyGraph.addEdge("doctor", "nurse", "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08")
 
     # Because of how we have the testing database setup I am not sure if this is actually saving correctly
+        
+    
     def test_addRole(self):
         """Test basic case of addRole"""
         self.HierarchyGraph.addRole("nurse", "nurse description", "123", "456")
@@ -84,6 +115,21 @@ class HierarchyGraphTests(TestCase):
         self.assertEquals(newRole.role_key, "456")
         # Not sure what this value should be right now so just check if there is something there
         self.assertTrue(newRole.role_second_key)
+
+    def test_updatePublicID(self):
+        """Add role then update its public id"""
+        self.HierarchyGraph.addRole("nurse", "nurse description", "123", "456")
+        newRole = Roles.objects.get(role="nurse")
+        self.assertEquals(newRole.role, "nurse")
+        self.assertEquals(newRole.description, "nurse description")
+        self.assertEquals(newRole.uuid, "123")
+        self.assertEquals(newRole.role_key, "456")
+        self.assertTrue(newRole.role_second_key)
+        #update the public ID for the new role
+        self.HierarchyGraph.updatePublicID(newRole.role)
+        newRole = Roles.objects.get(role = "nurse")
+        #test if the new uuid is not equal to the old one
+        self.assertNotEqual(newRole.uuid, "123")
 
     def test_createGraph(self):
         """Test basic case of createGraph"""
