@@ -172,12 +172,12 @@ class HierarchyGraph:
         for roleID, roleObj in self.nodes.items():
             if roleID == inputRoleId:
                 #del all children edges
-                for childrenRole in roleObj.edges.keys():
+                for childrenRole in list(roleObj.edges):
                     self.delEdge(roleID, childrenRole)
             if inputRoleId in roleObj.edges:
                 #del all parent edges
                 self.delEdge(roleID, inputRoleID)
-        self.nodes.pop(inputRoleID)
+        self.nodes.pop(inputRoleId)
         Roles.objects.filter(role=inputRoleId).delete()
 
 

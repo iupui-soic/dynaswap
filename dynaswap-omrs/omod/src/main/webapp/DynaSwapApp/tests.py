@@ -172,9 +172,9 @@ class HierarchyGraphTests(TestCase):
         nodeExists = False
         if roleId in localRoles:
             nodeExists = True
-        print(localRoles)
         self.assertEquals(nodeExists, False)
-        with self.assertRaises(DoesNotExist):
+        with self.assertRaises(Roles.DoesNotExist):
             databaseRoles = Roles.objects.get(role=roleId)
+        with self.assertRaises(RoleEdges.DoesNotExist):
             # After the role is deleted it's edges should also be deleted
             roleEdges = RoleEdges.objects.get(parent_role=roleId)
