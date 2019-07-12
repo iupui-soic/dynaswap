@@ -143,10 +143,23 @@ class HierarchyGraph:
         Roles.objects.filter(role=roleID).update(uuid=self.nodes[roleID].uuid, role_second_key=self.nodes[roleID].privateKey)
 
     def updateSecretKey(self, roleID):
+        #update the secret key first, then compute the new private key for the role
         newSecretKey = self.KeyManagement.generateSecretKey()
         self.nodes[roleID].secretKey = newSecretKey
         self.nodes[roleID].privateKey = hashMultipleToOne([self.nodes[roleID].uuid, self.nodes[roleID].secretKey])
         Roles.objects.filter(role=roleID).update(role_second_key=self.nodes[roleID].privateKey, role_key=self.nodes[roleID].secretKey)
+        #for edges connected to the role, change edge keys 
+        for parentRole in self.findPred(roleID).keys():
+            self.nodes[parentRole].edges[roleID].edgeKey = self.KeyManagement.calcEdgeKey(self.nodes[parentRole].secondKey, self.nodes[roleID].secondKey, self.nodes[roleID].rolePublicID)
+            parent = Roles.objects.get(role=parentRole)
+            child = Roles.objects.get(role=roleID)
+            RoleEdges.objects.filter(parent_role=parent, child_role=child).update(edge_key=self.nodes[parentRole].edges[roleID].edgeKey)
+        #for edges from this role, change edge keys
+        for children in self.nodes[roleID].edges.keys():
+            self.nodes[roleID].edges[children].edgeKey = self.KeyManagement.calcEdgeKey(self.nodes[roleID].secondKey, self.nodes[children].secondKey, self.nodes[children].rolePublicID)
+            parent = Roles.objects.get(role=roleID)
+            child = Roles.objects.get(role=children)
+            RoleEdges.objects.filter(parent_role=parent, child_role=child).update(edge_key=self.nodes[roleID].edges[children].edgeKey)
 
     def delEdge(self, parentRoleID, childRoleID):
             #generate a new ID for parent and compute new k
@@ -156,17 +169,17 @@ class HierarchyGraph:
             for roles in self.findDesc(childRoleID).keys():
                 self.updatePublicID(roles)
                 for rolePred in self.findPred(roles).keys():
-                    self.nodes[rolePred].edges[roles].edgeKey = self.calcEdgeKey(self.nodes[rolePred].secondKey, self.nodes[roles].secondKey, self.nodes[roles].rolePulicID)
+                    self.nodes[rolePred].edges[roles].edgeKey = self.KeyManagement.calcEdgeKey(self.nodes[rolePred].secondKey, self.nodes[roles].secondKey, self.nodes[roles].rolePulicID)
                     parentRole = Roles.objects.get(role=rolePred)
                     childRole = Roles.objects.get(role=roles)
                     RoleEdges.objects.filter(parent_role=parentRole, child_role=childRole).update(edge_key=self.nodes[rolePred].edges[roles].edgeKey)
             #delete record in database
-            parentRole = Roles.objects.filter(role=parentRoleID)
-            childRole = Roles.objects.filter(role=childRoleID)
+            parentRole = Roles.objects.get(role=parentRoleID)
+            childRole = Roles.objects.get(role=childRoleID)
 ##            print(parentRole.role)
 ##            print(childRole.role)
 ##            print (RoleEdges.objects.filter(parent_role=parentRole, child_role=childRole))
-            RoleEdges.objects.filter(parent_role=parentRole[0], child_role=childRole[0]).delete()
+            RoleEdges.objects.filter(parent_role=parentRole, child_role=childRole).delete()
 
     def delRole(self, inputRoleId):
         for roleID, roleObj in self.nodes.items():
@@ -176,7 +189,7 @@ class HierarchyGraph:
                     self.delEdge(roleID, childrenRole)
             if inputRoleId in roleObj.edges:
                 #del all parent edges
-                self.delEdge(roleID, inputRoleID)
+                self.delEdge(roleID, inputRoleId)
         self.nodes.pop(inputRoleId)
         Roles.objects.filter(role=inputRoleId).delete()
 
