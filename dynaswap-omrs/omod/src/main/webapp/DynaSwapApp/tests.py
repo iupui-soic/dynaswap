@@ -110,3 +110,25 @@ class HierarchyGraphTests(TestCase):
         self.HierarchyGraph.addEdge("test1", "test3", "test1to3edgeKey")
 
 
+    def test_delRole(self):
+        """Should be able to create a role with edges and then delete that role along with it's edges"""
+        self.HierarchyGraph.createGraph()
+        self.HierarchyGraph.addRole("test1", "test1 desc", "1", "testPrivateKey1")
+        self.HierarchyGraph.addRole("test2", "test2 desc", "2", "testPrivateKey2")
+        self.HierarchyGraph.addRole("test3", "test3 description", "3", "testPrivateKey3")
+        self.HierarchyGraph.addEdge("test1", "test2", "test1to2edgeKey")
+        self.HierarchyGraph.addEdge("test1", "test3", "test1to3edgeKey")
+        # role id to be deleted
+        roleId = "test1"
+        self.HierarchyGraph.delRole(roleId)
+        localRoles = self.HierarchyGraph.nodes
+        # the local role should be deleted so the node should not exist anymore
+        nodeExists = False
+        if roleId in localRoles:
+            nodeExists = True
+        print(localRoles)
+        self.assertEquals(nodeExists, False)
+        with self.assertRaises(DoesNotExist):
+            databaseRoles = Roles.objects.get(role=roleId)
+            # After the role is deleted it's edges should also be deleted
+            roleEdges = RoleEdges.objects.get(parent_role=roleId)

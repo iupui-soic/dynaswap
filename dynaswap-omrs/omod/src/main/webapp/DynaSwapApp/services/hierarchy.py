@@ -165,18 +165,18 @@ class HierarchyGraph:
             childRole = Roles.objects.filter(role=childRoleID)
             RoleEdges.objects.filter(parent_role=parentRole, child_role=childRole).delete()
 
-    def delRole(self, RoleID):
-        #we may want another dict to store the parents of each role to make del easier
-        for (roleID, roleObj) in self.nodes.items():
-            if roleID == RoleID:
+    def delRole(self, inputRoleId):
+        for roleID, roleObj in self.nodes.items():
+            if roleID == inputRoleId:
                 #del all children edges
                 for childrenRole in roleObj.edges.keys():
                     self.delEdge(roleID, childrenRole)
-            if RoleID in roleObj.edges:
+            if inputRoleId in roleObj.edges:
                 #del all parent edges
-                self.delEdge(roleID, RoleID)
-        self.nodes.pop(RoleID)
-        Roles.objects.filter(role=RoleID).delete()
+                self.delEdge(roleID, inputRoleID)
+        self.nodes.pop(inputRoleID)
+        Roles.objects.filter(role=inputRoleId).delete()
+
 
     def accessRole(self, curRoleID, targetRoleID):
         #DFS to the role wanted with key decoding
