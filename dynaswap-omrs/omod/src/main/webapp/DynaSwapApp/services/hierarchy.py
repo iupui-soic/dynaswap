@@ -4,6 +4,10 @@ from DynaSwapApp.models import RoleEdges
 import hashlib
 import sys
 import os
+import time
+
+start_time = time.time()
+
 
 """
 Note about notation: 
@@ -83,6 +87,9 @@ class HierarchyGraph:
         else:
             del self.nodes[parentRole.role].edges[childRole.role]
             raise CyclicError
+        #calculate elapsed time
+        elapsed = time.time() - start_time
+        print(elapsed)
 
     #add a new role
     def addRole(self, roleName, roleDesc, pubid, secretKey):
@@ -93,6 +100,9 @@ class HierarchyGraph:
         self.nodes[roleName] = newNode
         # Save node information to the database
         Roles(role=roleName, description=roleDesc, uuid=pubid, role_key=secretKey, role_second_key=privateKey).save()
+        #calculate time elapsed
+        elapsed = time.time() - start_time
+        print(elapsed)
 
     #read data from database and add roles and edges
     def createGraph(self):
@@ -180,6 +190,10 @@ class HierarchyGraph:
 ##            print(childRole.role)
 ##            print (RoleEdges.objects.filter(parent_role=parentRole, child_role=childRole))
             RoleEdges.objects.filter(parent_role=parentRole, child_role=childRole).delete()
+            #calculate elapsed time
+            elapsed = time.time() - start_time
+            print(elapsed)
+            
 
     def delRole(self, inputRoleId):
         for roleID, roleObj in self.nodes.items():
@@ -192,6 +206,9 @@ class HierarchyGraph:
                 self.delEdge(roleID, inputRoleId)
         self.nodes.pop(inputRoleId)
         Roles.objects.filter(role=inputRoleId).delete()
+        #calculate time elapsed
+        elapsed = time.time() - start_time
+        print(elapsed)
 
 
     def accessRole(self, curRoleID, targetRoleID):
