@@ -16,7 +16,7 @@ class Roles(models.Model):
     role_second_key = models.CharField(max_length=100)
     feature = models.BinaryField()
     big_prime = models.IntegerField(max_length=128)
-    random_num = models.ImageField(max_length=128)
+    random_num = models.IntegerField(max_length=128)
 
     def __str__(self):
         return self.role
@@ -28,6 +28,7 @@ class Users(models.Model):
         db_table = 'users'
     user_id = models.IntegerField(max_length=11, unique=True, primary_key=True)
     username = models.CharField(max_length=50, unique=True)
+    SID = models.IntegerField(max_length=128)
 
 
 class DynaSwapUsers(models.Model):
