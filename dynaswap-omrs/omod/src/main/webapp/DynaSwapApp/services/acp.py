@@ -22,7 +22,7 @@ class accessControlPoly:
 
 
     def updatePrime(self):
-        primeNum = number.getPrime(128)
+        self.bigPrime = number.getPrime(128)
         Roles.objects.get(role=curRole).update(big_prime=self.bigPrime)
 
 
