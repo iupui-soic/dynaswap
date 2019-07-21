@@ -13,6 +13,7 @@ urlpatterns = [
     url(r'^registration/$', views.RegisterView.as_view(), name='registration'),
     url(r'^authentication/$', views.AuthenticateView.as_view(), name='authentication'),
     url(r'^get_user_role/$', views.GetUserRoleView.as_view(), name='get_user_role'),
+    url(r'^server_test/$', views.ServerTestView.as_view(), name='server_test')
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -244,3 +244,8 @@ class GetUserRoleView(TemplateView):
             return JsonResponse({'status': 'success', 'user_id': user_instance.user_id})
         except Exception as e:
             return JsonResponse({'status': 'exception', 'error': str(e)})
+
+
+class ServerTestView(TemplateView):
+    def get(self, request, **kwargs):
+        return render(request, 'server_test.html')
