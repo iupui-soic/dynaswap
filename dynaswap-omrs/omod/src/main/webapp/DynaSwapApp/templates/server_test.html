@@ -5,15 +5,17 @@
     <title>Server Test</title>
 </head>
 <body>
-    <textarea id="chat-log" cols="100" rows="20"></textarea><br/>
-    <input id="chat-message-input" type="text" size="100"/><br/>
-    <input id="chat-message-submit" type="button" value="Send"/>
-    <input id="request_z" type="button" value="Ask for z value" />
+    <h3>Log</h3>
+    <p id="log"></p>
+    <button id="js-request-data">Ask for public data from server</button>
+    <button id="js-calc-secret-key">Calculate secret key using coefficient list</button>
 </body>
 <script>
 
     var chatSocket = new WebSocket('ws://127.0.0.1:8000/ws/server_test/');
     var SID = null;
+    var z, p, coefficientList;
+    const logEl = document.querySelector('#log');
 
     chatSocket.onopen = function(e) {
         SID = localStorage.getItem("SID")
@@ -22,19 +24,25 @@
             chatSocket.send(JSON.stringify({
                 'action': 'request_SID'
             }))
+        } else {
+            // show SID for testing purposes
+            logEl.innerText += `SID already on machine: ${SID}\n`;
         }
     }
 
     chatSocket.onmessage = function(e) {
-        var data = JSON.parse(e.data);
-        let logEl = document.querySelector('#chat-log');
-        // var message = data['message'];
-        // document.querySelector('#chat-log').value += (message + '\n');
-        if (data['action'] === "receive_z"){
-            logEl.value += (data['data'] + "\n");
+        let data = JSON.parse(e.data);
+        if (data['action'] === "receive_public_data"){
+            z = data['z'];
+            p = data['p'];
+            coefficientList = JSON.parse(data['coefficientList']);
+            logEl.innerText += `z: ${z}\n`;
+            logEl.innerText += `p: ${p}\n`;
+            logEl.innerText += `coefficientList: ${coefficientList}\n`;
+
         } else if (data['action'] === 'receive_SID'){
             localStorage.setItem("SID", data['SID']);
-            logEl.value += ("SID: " + data['SID'] + "\n");
+            logEl.innerText += `SID: ${data['SID']}\n`;
         }
 
     };
@@ -43,42 +51,44 @@
         console.error('Chat socket closed unexpectedly');
     };
 
-    document.querySelector('#chat-message-input').focus();
-    document.querySelector('#chat-message-input').onkeyup = function(e) {
-        if (e.keyCode === 13) {  // enter, return
-            document.querySelector('#chat-message-submit').click();
-        }
-    };
-
-    document.querySelector('#chat-message-submit').onclick = function(e) {
-        var messageInputDom = document.querySelector('#chat-message-input');
-        var message = messageInputDom.value;
+    document.querySelector('#js-request-data').onclick = function(e){
         chatSocket.send(JSON.stringify({
-            'message': message
-        }));
-
-        messageInputDom.value = '';
-    };
-
-    document.querySelector('#request_z').onclick = function(e){
-        chatSocket.send(JSON.stringify({
-            'action': 'request_z',
-            'data': ''
+            'action': 'request_public_data'
         }))
     };
 
-    testObj = '[1, -5, 2]';
-    z = 13;
+    document.querySelector('#js-calc-secret-key').onclick = (e) => {
+        if(!hasSIDandPublicData()){
+            return alert("Not all data is present. Must have SID and public data");
+        }
+        const hashedValue = oneWayFunc(SID, z);
+        logEl.innerText += `hashedValue: ${hashedValue}\n`;
+        let secretKey = calcSecretKey(coefficientList, hashedValue, p);
+        logEl.innerText += `secret key: ${secretKey}\n`;
+    }
 
-    function calcSecretKey(coefficientObj, xInt, zInt){
-        let coefficientList = JSON.parse(coefficientObj);
-        console.log(coefficientList);
+    // Not really the best way to do this but just need a way to ensure all variables are defined
+    function hasSIDandPublicData(){
+        if(SID === null){
+            return false;
+        } else if(z === undefined){
+            return false;
+        } else if(p === undefined){
+            return false;
+        } else if(coefficientList === undefined){
+            return false;
+        } else{
+            return true;
+        }
+    }
+
+    function calcSecretKey(coefficientList, x, p){
         let startingExponentNum = coefficientList.length-1
         let sum = 0;
         coefficientList.forEach((coefficient) => {
             coefficientNum = parseInt(coefficient);
             if(startingExponentNum > 0){
-                sum += (coefficientNum * Math.pow(xInt, startingExponentNum));
+                sum += (coefficientNum * Math.pow(x, startingExponentNum));
             } else{
                 sum += coefficientNum;
             }
@@ -87,13 +97,18 @@
         
         // Want to be able to get a positive number when modding a negative
         if(sum < 0){
-            return (sum % zInt) + zInt;
+            return (sum % p) + p;
         } else {
-            return sum % zInt;
+            return sum % p;
         }
     }
-    console.log(calcSecretKey(testObj, 4, z));
     
+    // The example one way function as defined Dual Level Key Management paper
+    function oneWayFunc(SID, z){
+        // XOR on SID and z
+        let exponent = SID ^ z;
+        return Math.pow(2, exponent); 
+    }
     
 </script>
 </html>
