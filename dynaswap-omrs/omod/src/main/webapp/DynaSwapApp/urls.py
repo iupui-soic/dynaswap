@@ -17,6 +17,7 @@ urlpatterns = [
     path('graph/', views.GetGraph, name='get_graph'), 
     path('delete_role/', views.DeleteRoleView.as_view(), name='delete_role'),
     path('add_role/', views.AddRoleView.as_view(), name='add_role'),
+    url(r'^server_test/$', views.ServerTestView.as_view(), name='server_test')
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

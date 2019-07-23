@@ -335,3 +335,6 @@ class AddRoleView(CreateView):
         graph.createGraph()
         graph.addRole(self.object.role, self.object.description, "", "")
         return HttpResponseRedirect(self.get_success_url())
+class ServerTestView(TemplateView):
+    def get(self, request, **kwargs):
+        return render(request, 'server_test.html')

@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'DynaSwapApp',
+    'channels'
 ]
 
 MIDDLEWARE = [
@@ -77,6 +78,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'DynaSwap.wsgi.application'
 
+# For django channels
+ASGI_APPLICATION = "DynaSwap.routing.application"
+
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
@@ -86,6 +90,9 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'OPTIONS': {
             'read_default_file': os.path.join(BASE_DIR, 'DynaSwap/my.cnf'),
+        },
+        'TEST': {
+            'NAME': 'openmrs'     
         },
     }
 }
