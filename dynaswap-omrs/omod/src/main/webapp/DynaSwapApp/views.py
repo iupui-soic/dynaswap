@@ -6,17 +6,24 @@ import io
 import numpy as np
 import cv2
 import pickle
+import json
+import random
+import queue
+from django import forms
+from DynaSwapApp.forms import allRoles
 from sklearn.svm import SVC
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, render_to_response
 from django.templatetags.static import static
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, View, CreateView
 from django.core.files.base import ContentFile
 from DynaSwapApp.models import Roles
 from DynaSwapApp.models import Users
 from DynaSwapApp.models import UsersRoles
 from DynaSwapApp.models import DynaSwapUsers
+from DynaSwapApp.models import RoleEdges
 from DynaSwapApp.services.register import Register
+from DynaSwapApp.services.hierarchy import Node, Edge, KeyManagement, HierarchyGraph
 from DynaSwapApp.services.authenticate import Authenticate
 from django.utils import timezone
 
@@ -244,3 +251,87 @@ class GetUserRoleView(TemplateView):
             return JsonResponse({'status': 'success', 'user_id': user_instance.user_id})
         except Exception as e:
             return JsonResponse({'status': 'exception', 'error': str(e)})
+
+
+#simple view to display the graph
+def GetGraph(request):
+    roles = []
+    edges = []
+    graph = HierarchyGraph("Admin")
+
+    graph.createGraph()
+
+    checkVisited = dict()
+    rightCor = dict()
+    checkOrigin = dict()
+
+    for node in graph.nodes.keys():
+        checkOrigin[node] = True
+
+    for node in graph.nodes.keys():
+        checkVisited[node] = False
+        for edge in graph.nodes[node].edges.keys():
+            checkOrigin[edge] = False
+    q = queue.Queue()
+    row = 0
+    for origin in checkOrigin.keys():
+        if checkOrigin[origin]:
+            q.put(origin)
+            checkVisited[origin] = True
+    
+    while not q.empty():
+        row = row + 1
+        rightCor[row] = 1
+        qsize = q.qsize()
+        for i in range(qsize):
+            cur = q.get()
+            roles.append({'id': cur, 'label': cur, 'x': 30 / (qsize + 1) * rightCor[row], 'y': row * 5, 'size': 5})
+            rightCor[row] = rightCor[row] + 1
+            for curedge in graph.nodes[cur].edges.keys():
+                if not checkVisited[curedge]:
+                    q.put(curedge)
+                    checkVisited[curedge] = True
+    
+    inc = 1
+    for node in graph.nodes.keys():
+        for edge in graph.nodes[node].edges.keys():
+            edges.append({'id': inc, "source": node, "target": edge})
+            inc = inc + 1
+
+    JsonList = {'nodes': roles, "edges": edges}
+
+    return render(
+        request, 'graph.html', {
+            'JsonList': json.dumps(JsonList),
+        }
+    )
+
+ 
+class DeleteRoleView(View):
+    
+    def get(self, request):
+        roleTab = allRoles()
+        return render(request, 'delete_role.html', locals())
+
+
+    def post(self, request):
+        selectRole = allRoles(request.POST)
+        if selectRole.is_valid():    
+            getRole = request.POST.get('allRoleChoices', "")
+
+            graph = HierarchyGraph(getRole)
+            graph.createGraph()
+            graph.delRole(getRole)
+
+
+class AddRoleView(CreateView):
+    model = Roles
+    template_name = "add_role.html"
+    fields = ['role', 'description']
+    
+    def form_valid(self, form):
+        self.object = form.save()
+        graph = HierarchyGraph(self.object.role)
+        graph.createGraph()
+        graph.addRole(self.object.role, self.object.description, "", "")
+        return HttpResponseRedirect(self.get_success_url())

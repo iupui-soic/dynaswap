@@ -1,14 +1,17 @@
 from Crypto.Util import number
 from DynaSwapApp.models import Roles, RoleEdges, User, UsersRoles
 from DynaSwapApp.services.hierarchy import Node, Edge, KeyManagement, HierarchyGraph
+from itertools import combinations
 import os
 
 def hashMultipleToOne(listOfValuesToHash):
-    concatedHashes = ""
-    for value in listOfValuesToHash:
-        concatedHashes += value
-    result = int(hashlib.sha256(concatedHashes.encode('utf-8')).hexdigest(), 0)
-    return result
+    # concatedHashes = ""
+    # for value in listOfValuesToHash:
+    #     concatedHashes += value
+    # result = int(hashlib.sha256(concatedHashes.encode('utf-8')).hexdigest(), 0)
+    # return result
+    return pow(2, (listOfValuesToHash[0] ^ listOfValuesToHash[1]), listOfValuesToHash[2])
+
 
 #I'm assuming that the User model has a new field 'SID', and it's assigned during the registration for now.
 #And UsersRoles model has new fields 'big_prime', 'random_number' indicating the prime and random number used in the function
@@ -29,8 +32,33 @@ class accessControlPoly:
     def updateACP(self):
         self.randomNum = os.urandom(128)
         keyManage = KeyManagement(128)
-        newSecretKey = keyManage.generateSecretKey()
+        newSecretKey = int(keyManage.generateSecretKey())
+
+        SIDList = []
+        ACP = []
+        
+        ACP.append(self.randomNum)
+        ACP.append(self.bigPrime)
+        ACP.append(1)
+
+        for user in UsersRoles.objects.filter(role=self.curRole):
+            SIDList.append(hashMultipleToOne([user.user_id.SID, self.randomNum, self.bigPrime]))
+
+        for i in range(1, len(SIDList)):
+            SIDComb = combinations(SIDList, i)
+            polyTerm = 0
+            multip = 1
+            for everyComb in SIDComb:
+                for everyTerm in everyComb:
+                    multip = multip * everyComb % self.bigPrime
+                polyTerm = (polyTerm + multip) % self.bigPrime
+            ACP.append(polyTerm)
+        ACP[len(ACP) - 1] = (ACP[len(ACP) - 1] + newSecretKey) % self.bigPrime
+        #ACP is a list contains all the poly terms, maybe return this in Json objects to the client side to compute the secret key
+        #ACP[0] = random number, ACP[1] = big prime
+        #maybe also store the list to the database for queries later
         Roles.objects.get(role=userRole).update(random_num=self.randomNum, role_key=newSecretKey)
+        return ACP
 
 
     #depend on the registration
@@ -49,23 +77,22 @@ class accessControlPoly:
             userObj = User.objects.get(user_id=userID)
             roleObj = Roles.objects.get(role=curRole)
             UsersRoles(user_id=userObj, role=roleObj).save()
-        #send message to all the users(only random number needed now)
+            
+        return self.updateACP()
 
 
     def revokeUser(self, userID):
         userObj = User.objects.get(user_id=userID)
         UsersRoles.objects.get(user_id=userObj).delete()
-        self.updateACP()
-        #send to all users
-        #update keys in the graph
         graph = HierarchyGraph(curRole)
         graph.updateSecretKey(curRole)
 
+        return self.updateACP()
 
-    def calcAccess(self, hashedValue):
-        res = 0
-        for userObj in UsersRoles.objects.filter(role=curRole):
-            res = res * (hashMultipleToOne([userObj.SID, self.randomNum]) - hashedValue) % self.bigPrime
-        return res + Roles.objects.get(role=curRole).role_key
 
-        
+    #should move to client side?
+    # def calcAccess(self, hashedValue):
+    #     res = 0
+    #     for userObj in UsersRoles.objects.filter(role=curRole):
+    #         res = res * (hashMultipleToOne([userObj.SID, self.randomNum]) - hashedValue) % self.bigPrime
+    #     return res + Roles.objects.get(role=curRole).role_key

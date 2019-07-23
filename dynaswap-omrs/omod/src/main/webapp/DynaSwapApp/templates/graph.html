@@ -1,0 +1,30 @@
+{% load static %}
+<html>
+<head>
+<style type="text/css">
+  #container {
+    max-width: 900px;
+    height: 900px;
+    margin: auto;
+  }
+</style>
+</head>
+<body>
+<div id="container"></div>
+<script src="{% static 'js/sigma.min.js' %}"></script>
+<!-- <script src="{% static 'sigma.js-1.2.1/plugins/sigma.parsers.json/sigma.parsers.json.js' %}"></script> -->
+<script>
+    var g = {{ JsonList|safe }}
+    s = new sigma({ 
+        graph: g,
+        container: 'container',
+        settings: {
+            defaultNodeColor: '#ec5148'
+        }
+    });
+    s.refresh();
+</script>
+<a href="{% url 'add_role' %}">Add</a>
+<a href="{% url 'delete_role' %}">Delete</a>
+</body>
+</html>
