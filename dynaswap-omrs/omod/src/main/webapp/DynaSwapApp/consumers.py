@@ -12,12 +12,6 @@ class ServerConsumer(WebsocketConsumer):
         text_data_json = json.loads(text_data)
         action = text_data_json['action']
 
-        # message = text_data_json['message']
-
-        # self.send(text_data=json.dumps({
-        #     'message': message
-        # }))
-
         if action == "request_public_data":
             self.publicize_data()
         elif action == "request_SID":
