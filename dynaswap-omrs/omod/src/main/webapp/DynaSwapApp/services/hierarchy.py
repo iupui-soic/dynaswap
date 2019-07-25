@@ -1,10 +1,10 @@
 from collections import defaultdict
-from DynaSwapApp.models import Roles
-from DynaSwapApp.models import RoleEdges
+from DynaSwapApp.models import Roles, RoleEdges, Users, UsersRoles
 import hashlib
 import sys
 import os
 import time
+from .acp import hashMultipleToOneInt, accessControlPoly
 
 start_time = time.time()
 
@@ -37,6 +37,7 @@ class Node:
         self.secretKey = secretKey
         self.privateKey = privateKey
         self.edges = dict()
+        self.access_control_poly = accessControlPoly(self.roleName)
 
 
 #class of edges
@@ -61,7 +62,7 @@ class KeyManagement:
     
     def generateSecretKey(self):
         secretKeyHex = hashlib.md5(os.urandom(self.keyLength)).hexdigest()
-        return secretKeyHex
+        return int(secretKeyHex)
 
 
 class HierarchyGraph:
@@ -245,6 +246,27 @@ class HierarchyGraph:
             if (roles not in pred) and (originRoleID in self.nodes[roles].edges):
                 pred[roles] = False
         return pred
+    
+    def addUser(self, userID, roleID):
+        try:
+            user = Users.objects.get(user_id=userID)
+            res = UsersRoles.objects.get(user_id=user)
+        except UsersRoles.DoesNotExist:
+            res = None
+
+        if res:
+            userObj = Users.objects.get(user_id=userID)
+            roleObj = Roles.objects.get(role=roleID)
+            UsersRoles(user_id=userObj, role=roleObj).save()
+            
+        return self.nodes[roleID].access_control_poly.updateACP()
+    
+    def revokeUser(self, userID, roleID):
+        userObj = Users.objects.get(user_id=userID)
+        UsersRoles.objects.get(user_id=userObj).delete()
+        self.updateSecretKey(roleID)
+
+        return self.nodes[roleID].access_control_poly.updateACP()
         
 
 # Should be moved to a file for exceptions at some point

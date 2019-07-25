@@ -1,7 +1,16 @@
 from channels.generic.websocket import WebsocketConsumer
 import json
+from DynaSwapApp.services.hierarchy import HierarchyGraph
+
+graph = HierarchyGraph("doctor")
+graph.createGraph()
+print(graph.nodes)
 
 class ServerConsumer(WebsocketConsumer):
+    # def __init__(self):
+    #     self.graph = HierarchyGraph("doctor")
+    #     print(graph.nodes)
+
     def connect(self):
         self.accept()
 
