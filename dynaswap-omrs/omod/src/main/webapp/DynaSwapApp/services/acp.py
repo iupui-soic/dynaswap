@@ -4,6 +4,7 @@ from DynaSwapApp.models import Roles, RoleEdges, Users, UsersRoles
 from itertools import combinations
 import os
 import hashlib
+import struct
 
 # concat values together and then hash
 def hashMultipleToOneInt(listOfValuesToHash):
@@ -24,21 +25,22 @@ class accessControlPoly:
         self.updateRandNum()
 
     def updatePrime(self):
-        self.bigPrime = number.getPrime(128)
-        print(f"prime: {self.bigPrime}")
-        length = len(str(self.bigPrime))
-        print(f"length: {length}")
+        # Models says that integer can go up to 128 but MYSQL caps ints at (2^32)-1? So just use 30 for now
+        self.bigPrime = number.getPrime(30)
         Roles.objects.filter(role=self.curRole).update(big_prime=self.bigPrime)
     
     def updateRandNum(self):
-        self.randomNum = os.urandom(128)
-        Roles.objects.get(role=self.curRole).update(random_num=self.randomNum)
+        # Just using an unsigned short for now because it fits in MYSQL.
+        # Maybe change MYSQL INT to BIGINT later?
+        self.randomNum = struct.unpack('H', os.urandom(2))[0]
+        Roles.objects.filter(role=self.curRole).update(random_num=self.randomNum)
 
     def updateACP(self, newSecretKey):
         # self.randomNum = os.urandom(128)
         self.updateRandNum()
         # keyManage = KeyManagement(128)
         # newSecretKey = int(keyManage.generateSecretKey())
+        newSecretKeyHex = int(newSecretKey, 16)
 
         SIDList = []
         ACP = []
@@ -48,9 +50,14 @@ class accessControlPoly:
         ACP.append(1)
 
         for entry in UsersRoles.objects.filter(role=self.curRole):
-            # use the user_id from the user_role table mapping to get the user object
+            # The models are setup kind of weird.
+            # entry is a UsersRoles object. There is a User object stored under user_id on this object
+            # On the User object the user_id is stored as an int under the property user_id
+            # So to actually get the user_id number you must access the user_id property twice. This should be cleaned up later.
+            user_id_num = entry.user_id.user_id
+            # use the user_id_num from the user_role table mapping to get the user object
             # and grab the SID from the user object
-            SID = Users.get(user_id=entry.user_id).SID
+            SID = Users.objects.filter(user_id=user_id_num)[0].SID
             SIDList.append(hashMultipleToOneInt([SID, self.randomNum, self.bigPrime]))
 
         for i in range(1, len(SIDList)):
@@ -62,11 +69,11 @@ class accessControlPoly:
                     multip = multip * everyComb % self.bigPrime
                 polyTerm = (polyTerm + multip) % self.bigPrime
             ACP.append(polyTerm)
-        ACP[len(ACP) - 1] = (ACP[len(ACP) - 1] + newSecretKey) % self.bigPrime
+        ACP[len(ACP) - 1] = (ACP[len(ACP) - 1] + newSecretKeyHex) % self.bigPrime
         #ACP is a list contains all the poly terms, maybe return this in Json objects to the client side to compute the secret key
         #ACP[0] = random number, ACP[1] = big prime
         #maybe also store the list to the database for queries later
-        Roles.objects.get(role=self.curRole).update(role_key=newSecretKey)
+        Roles.objects.filter(role=self.curRole).update(role_key=newSecretKey)
         return ACP
 
 

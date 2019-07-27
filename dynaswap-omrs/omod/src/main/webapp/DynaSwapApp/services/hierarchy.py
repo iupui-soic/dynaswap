@@ -30,7 +30,7 @@ def xor_two_strings(str1, str2):
 
 #class of roles
 class Node:
-    def __init__(self, roleName, roleDesc, rolePublicID, secretKey, privateKey):
+    def __init__(self, roleName, roleDesc, rolePublicID, secretKey=None, privateKey=None):
         self.roleName = roleName
         self.roleDesc = roleDesc
         self.rolePublicID = rolePublicID
@@ -62,7 +62,7 @@ class KeyManagement:
     
     def generateSecretKey(self):
         secretKeyHex = hashlib.md5(os.urandom(self.keyLength)).hexdigest()
-        return int(secretKeyHex)
+        return secretKeyHex
 
 
 class HierarchyGraph:
@@ -93,14 +93,24 @@ class HierarchyGraph:
         print(elapsed)
 
     #add a new role
-    def addRole(self, roleName, roleDesc, pubid, secretKey):
-        privateKey = hashMultipleToOne([pubid, secretKey])
-        # Is accessKey the correct parameter here? What is secondKey supposed to be in Node
-        newNode = Node(roleName, roleDesc, pubid, secretKey, privateKey)
-        # Add new node to local graph
+    # def addRole(self, roleName, roleDesc, pubid, secretKey):
+    #     privateKey = hashMultipleToOne([pubid, secretKey])
+    #     # Is accessKey the correct parameter here? What is secondKey supposed to be in Node
+    #     newNode = Node(roleName, roleDesc, pubid, secretKey, privateKey)
+    #     # Add new node to local graph
+    #     self.nodes[roleName] = newNode
+    #     # Save node information to the database
+    #     Roles(role=roleName, description=roleDesc, uuid=pubid, role_key=secretKey, role_second_key=privateKey).save()
+    #     #calculate time elapsed
+    #     elapsed = time.time() - start_time
+    #     print(elapsed)
+
+    def addRole(self, roleName, roleDesc):
+        pubid = self.KeyManagement.generatePublicId()
+        newNode = Node(roleName, roleDesc, pubid)
         self.nodes[roleName] = newNode
         # Save node information to the database
-        Roles(role=roleName, description=roleDesc, uuid=pubid, role_key=secretKey, role_second_key=privateKey).save()
+        Roles(role=roleName, description=roleDesc, uuid=pubid).save()
         #calculate time elapsed
         elapsed = time.time() - start_time
         print(elapsed)
@@ -260,6 +270,10 @@ class HierarchyGraph:
             UsersRoles(user_id=userObj, role=roleObj).save()
             
         return self.nodes[roleID].access_control_poly.updateACP()
+    
+    def assignSID(self, userID):
+        SID = self.KeyManagement.generateSecretKey()
+        Users.objects.filter(user_id=userID).update(SID=SID)
     
     def revokeUser(self, userID, roleID):
         userObj = Users.objects.get(user_id=userID)

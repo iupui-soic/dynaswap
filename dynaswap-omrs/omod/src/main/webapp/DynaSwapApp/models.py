@@ -27,7 +27,7 @@ class Users(models.Model):
         db_table = 'users'
     user_id = models.IntegerField(max_length=11, unique=True, primary_key=True)
     username = models.CharField(max_length=50, unique=True)
-    SID = models.IntegerField(max_length=128)
+    SID = models.CharField(max_length=128)
 
 
 class DynaSwapUsers(models.Model):
@@ -53,7 +53,7 @@ class UsersRoles(models.Model):
     role = models.ForeignKey(Roles, db_column='role', on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.user_id, self.role
+        return "{}, {}".format(self.user_id, self.role)
 
 
 class RoleEdges(models.Model):

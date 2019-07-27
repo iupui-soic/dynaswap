@@ -4,7 +4,8 @@ from DynaSwapApp.services.hierarchy import HierarchyGraph
 
 graph = HierarchyGraph("doctor")
 graph.createGraph()
-print(graph.nodes)
+graph.assignSID(5)
+graph.nodes['Organizational: Doctor'].access_control_poly.updateACP(graph.KeyManagement.generateSecretKey())
 
 class ServerConsumer(WebsocketConsumer):
     # def __init__(self):
