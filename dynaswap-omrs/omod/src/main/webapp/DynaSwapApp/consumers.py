@@ -1,17 +1,16 @@
 from channels.generic.websocket import WebsocketConsumer
 import json
 from DynaSwapApp.services.hierarchy import HierarchyGraph
+from DynaSwapApp.models import Users, UsersRoles, Roles
+from channels.db import database_sync_to_async
 
 graph = HierarchyGraph("doctor")
 graph.createGraph()
-graph.assignSID(5)
-graph.nodes['Organizational: Doctor'].access_control_poly.updateACP(graph.KeyManagement.generateSecretKey())
+# graph.assignSID(5)
+# graph.nodes['Organizational: Doctor'].access_control_poly.updateACP(graph.KeyManagement.generateSecretKey())
+# print(graph.nodes)
 
 class ServerConsumer(WebsocketConsumer):
-    # def __init__(self):
-    #     self.graph = HierarchyGraph("doctor")
-    #     print(graph.nodes)
-
     def connect(self):
         self.accept()
 
@@ -21,32 +20,36 @@ class ServerConsumer(WebsocketConsumer):
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
         action = text_data_json['action']
+        user_id = text_data_json['user_id']
 
         if action == "request_public_data":
-            self.publicize_data()
+            self.publicize_data(user_id)
         elif action == "request_SID":
-            self.sendSID()
+            self.sendSID(user_id)
     
-    def publicize_data(self):
-        # These are dummy variables hardcoded in. It is assumed that the ACP class will be able to supply
-        # these either by returning through function calls or passing in to this function as parameters
-        z = 5
-        coefficientList = json.dumps([1, -5, 2])
-        p = 13
+    def publicize_data(self, user_id):
+        role_for_user = str(UsersRoles.objects.get(user_id=user_id).role)
+        z = str(Roles.objects.get(role=role_for_user).random_num)
+        p = str(Roles.objects.get(role=role_for_user).big_prime)
+        coefficientList = graph.nodes[role_for_user].access_control_poly.updateACP(graph.KeyManagement.generateSecretKey())
+        coefficientListJSON = json.dumps(coefficientList)
+
         self.send(text_data=json.dumps({
             'action': 'receive_public_data',
             'z': z,
-            'coefficientList': coefficientList,
+            'coefficientList': coefficientListJSON,
             'p': p
 
         }))
     
-    def sendSID(self):
+    def sendSID(self, user_id):
         """Right now the user login functionality is not working. Ideally if a user could log in
         then this function would take a user_id as an input and be able to detemine if this user already
         has an SID or needs to be assigned a new one."""
-        # dummy SID for now, ideally this should use the KeyManagement class from hierarchy.py to get SID
-        SID = 7
+        SID = Users.objects.get(user_id=user_id).SID
+        # if there isn't an SID already in the database assign one
+        if SID is None:
+            SID = graph.assignSID(user_id)
         self.send(text_data=json.dumps({
             'action': 'receive_SID',
             'SID': SID

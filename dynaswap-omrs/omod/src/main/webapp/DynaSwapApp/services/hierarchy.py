@@ -274,6 +274,7 @@ class HierarchyGraph:
     def assignSID(self, userID):
         SID = self.KeyManagement.generateSecretKey()
         Users.objects.filter(user_id=userID).update(SID=SID)
+        return SID
     
     def revokeUser(self, userID, roleID):
         userObj = Users.objects.get(user_id=userID)
