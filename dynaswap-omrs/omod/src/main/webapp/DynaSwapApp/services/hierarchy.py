@@ -81,8 +81,7 @@ class KeyManagement:
 
 
 class HierarchyGraph:
-    def __init__(self, curRole):
-        self.curRole = curRole
+    def __init__(self):
         self.nodes = dict()
         self.KeyManagement = KeyManagement(128)
 
@@ -279,18 +278,13 @@ class HierarchyGraph:
         return pred
     
     def addUser(self, userID, roleID):
-        try:
-            user = Users.objects.get(user_id=userID)
-            res = UsersRoles.objects.get(user_id=user)
-        except UsersRoles.DoesNotExist:
-            res = None
-
-        if res:
-            userObj = Users.objects.get(user_id=userID)
+        # only do something if there isn't already an entry in UsersRoles
+        if not UsersRoles.objects.filter(user_id=userID).exists():
+            useObj = Users.objects.get(user_id=userID)
             roleObj = Roles.objects.get(role=roleID)
-            UsersRoles(user_id=userObj, role=roleObj).save()
-            
-        return self.nodes[roleID].access_control_poly.updateACP()
+            UsersRoles(user_id=useObj, role=roleObj).save()
+        # Not sure if this actually needs to be done here
+        return self.nodes[roleID].access_control_poly.updateACP(self.KeyManagement.generateSecretKey())
     
     def assignSID(self, userID):
         SID = self.KeyManagement.generateSecretKey()

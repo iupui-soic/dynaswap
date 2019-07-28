@@ -65,6 +65,7 @@ class Client:
     async def receive_public_graph_data(self, data):
         # print(data)
         # maybe should send this with the SID instead
+        # This is the uuid of the role where the user starts at
         self.user_uuid = data['user_uuid']
         self.public_graph = data['public_graph']
         print("Now have public info from graph")
@@ -94,10 +95,21 @@ class Client:
     
     def calc_own_private_key(self):
         self.private_key = hashMultipleToOneInt([self.secret_key, self.user_uuid])
+    
+    def access_role(self, cur_role_id, target_role_id):
+        if cur_role_id == target_role_id:
+            return True
+        for child in self.public_graph[cur_role_id]:
+            # hash of own private key and child's public uuid
+            hashed = hashMultipleToOneInt([self.private_key, child[0]])
+            edge_key = int(child[1], 16)
+            child_private_key = edge_key ^ hashed
+            print(child_private_key)
+        return False
 
 
 if __name__ == "__main__":
-    client = Client("ws://127.0.0.1:8000/ws/server_test/", 5)
+    client = Client("ws://127.0.0.1:8000/ws/server_test/", 10)
     loop = asyncio.get_event_loop()
     connection = loop.run_until_complete(client.connect())
     loop.run_until_complete(client.send_action(connection, "request_SID"))
@@ -110,3 +122,4 @@ if __name__ == "__main__":
     print(f"secret key is: {client.secret_key}")
     loop.run_until_complete(client.send_action(connection, "request_public_graph_data"))
     loop.run_until_complete(client.receive_JSON(connection))
+    # client.access_role(client.user_uuid, 'test3')
