@@ -24,6 +24,14 @@ def hashMultipleToOne(listOfValuesToHash):
     return result
 
 
+def hashMultipleToOneInt(listOfValuesToHash):
+    concatedHashes = ""
+    for value in listOfValuesToHash:
+        concatedHashes += str(value)
+    result = hashlib.md5(concatedHashes.encode('utf-8')).hexdigest()
+    return int(result, 16)
+
+
 def xor_two_strings(str1, str2):
     return "".join(chr(ord(a) ^ ord(b)) for a,b in zip(str1,str2))
 
@@ -51,9 +59,9 @@ class KeyManagement:
         self.keyLength = keyLength
 
     def calcEdgeKey(self, parentPrivateKey, childPrivateKey, childLabel):
-        hashed = hashMultipleToOne([parentPrivateKey, childLabel])
-        edgeKey = xor_two_strings(childPrivateKey, hashed)
-        # maybe take the rightmost 128 bits of edgeKey instead of using mod part of equation from paper
+        hashed = hashMultipleToOneInt([parentPrivateKey, childLabel])
+        # edgeKey = xor_two_strings(childPrivateKey, hashed)
+        edgeKey = int(childPrivateKey, 16) ^ hashed
         return edgeKey 
     
     def generatePublicId(self):
@@ -63,6 +71,13 @@ class KeyManagement:
     def generateSecretKey(self):
         secretKeyHex = hashlib.md5(os.urandom(self.keyLength)).hexdigest()
         return secretKeyHex
+    
+    def generatePrivateKey(self):
+        # Right now this is pretty much the same as generateSecretKey but
+        # they have been made different functions with the expectation that the logic may differ in the future.
+        # If not they should be combined at some point
+        privateKeyHex = hashlib.md5(os.urandom(self.keyLength)).hexdigest()
+        return privateKeyHex
 
 
 class HierarchyGraph:
@@ -72,10 +87,15 @@ class HierarchyGraph:
         self.KeyManagement = KeyManagement(128)
 
     #add edge to the graph
-    def addEdge(self, parentRoleName, childRoleName, edgeKey):
+    def addEdge(self, parentRoleName, childRoleName):
         # Need to edit this function so that it uses isCyclic to make sure that adding an edge doesn't violate DAG
         parentRole = Roles.objects.get(role=parentRoleName)
         childRole = Roles.objects.get(role=childRoleName)
+        parentPrivateKey = parentRole.role_second_key
+        childPrivateKey = childRole.role_second_key
+        childLabel = childRole.uuid
+        edgeKey = self.KeyManagement.calcEdgeKey(parentPrivateKey, childPrivateKey, childLabel)
+        # print(f"parentPrivateKey: {parentPrivateKey}\nchildPrivateKey: {childPrivateKey}\nchildLabel: {childLabel}\nedgeKey: {edgeKey}")
         # Create new edge object for local graph
         newEdge = Edge(edgeKey)
         # Use the names of parent and child roles for key names
@@ -107,10 +127,11 @@ class HierarchyGraph:
 
     def addRole(self, roleName, roleDesc):
         pubid = self.KeyManagement.generatePublicId()
-        newNode = Node(roleName, roleDesc, pubid)
+        privateKey = self.KeyManagement.generatePrivateKey()
+        newNode = Node(roleName, roleDesc, pubid, None, privateKey)
         self.nodes[roleName] = newNode
         # Save node information to the database
-        Roles(role=roleName, description=roleDesc, uuid=pubid).save()
+        Roles(role=roleName, description=roleDesc, uuid=pubid, role_second_key=privateKey).save()
         #calculate time elapsed
         elapsed = time.time() - start_time
         print(elapsed)

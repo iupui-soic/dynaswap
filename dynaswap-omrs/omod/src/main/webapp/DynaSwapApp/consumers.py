@@ -1,11 +1,14 @@
 from channels.generic.websocket import WebsocketConsumer
 import json
 from DynaSwapApp.services.hierarchy import HierarchyGraph
-from DynaSwapApp.models import Users, UsersRoles, Roles
+from DynaSwapApp.models import Users, UsersRoles, Roles, RoleEdges
 from channels.db import database_sync_to_async
 
 graph = HierarchyGraph("doctor")
 graph.createGraph()
+graph.addRole('test1', 'testing 1')
+graph.addRole('test2', 'testing 2')
+graph.addEdge('test1', 'test2')
 # graph.assignSID(5)
 # graph.nodes['Organizational: Doctor'].access_control_poly.updateACP(graph.KeyManagement.generateSecretKey())
 # print(graph.nodes)
@@ -26,6 +29,8 @@ class ServerConsumer(WebsocketConsumer):
             self.publicize_data(user_id)
         elif action == "request_SID":
             self.sendSID(user_id)
+        elif action == "request_public_graph_data":
+            self.publicize_graph_data(user_id)
     
     def publicize_data(self, user_id):
         role_for_user = str(UsersRoles.objects.get(user_id=user_id).role)
@@ -40,6 +45,23 @@ class ServerConsumer(WebsocketConsumer):
             'coefficientList': coefficientListJSON,
             'p': p
 
+        }))
+    
+    def publicize_graph_data(self, user_id):
+        user_role = UsersRoles.objects.get(user_id=user_id).role
+        user_uuid = user_role.uuid
+        public_graph = {}
+        for roles in Roles.objects.all():
+            public_graph[roles.uuid] = ()
+        for edges in RoleEdges.objects.all():
+            parent_uuid = edges.parent_role.uuid
+            child_uuid = edges.child_role.uuid
+            public_graph[parent_uuid] = (child_uuid, edges.edge_key)
+        # print(nodes)
+        self.send(text_data=json.dumps({
+            'action': 'receive_public_graph_data',
+            'user_uuid': user_uuid,
+            'public_graph': public_graph
         }))
     
     def sendSID(self, user_id):
