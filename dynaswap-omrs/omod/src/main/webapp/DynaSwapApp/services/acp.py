@@ -14,7 +14,8 @@ def hashMultipleToOneInt(listOfValuesToHash):
     concatedHashes += str(listOfValuesToHash[0])
     concatedHashes += str(listOfValuesToHash[1])
     result = hashlib.md5(concatedHashes.encode('utf-8')).hexdigest()
-    return int(result, 16) % listOfValuesToHash[2]
+    return int(result, 16)
+
 
 #I'm assuming that the User model has a new field 'SID', and it's assigned during the registration for now.
 #And UsersRoles model has new fields 'big_prime', 'random_number' indicating the prime and random number used in the function
@@ -29,7 +30,7 @@ class accessControlPoly:
 
     def updatePrime(self):
         # Models says that integer can go up to 128 but MYSQL caps ints at (2^32)-1? So just use 30 for now
-        self.bigPrime = number.getPrime(30)
+        self.bigPrime = hex(number.getPrime(128))
         Roles.objects.filter(role=self.curRole).update(big_prime=self.bigPrime)
     
     def updateRandNum(self):
@@ -53,6 +54,8 @@ class accessControlPoly:
         ACP.append(self.bigPrime)
         ACP.append(1)
 
+        bigPrimeInt = int(self.bigPrime, 16)
+
         for entry in UsersRoles.objects.filter(role=self.curRole):
             # The models are setup kind of weird.
             # entry is a UsersRoles object. There is a User object stored under user_id on this object
@@ -62,7 +65,10 @@ class accessControlPoly:
             # use the user_id_num from the user_role table mapping to get the user object
             # and grab the SID from the user object
             SID = Users.objects.filter(user_id=user_id_num)[0].SID
-            SIDList.append(hashMultipleToOneInt([SID, self.randomNum, self.bigPrime]))
+            # SIDList.append(hashMultipleToOneInt([SID, self.randomNum, bigPrimeInt]))
+            hashed_value = hashMultipleToOneInt([SID, self.randomNum])
+            hashed_value = -(hashed_value)
+            SIDList.append(hashed_value)
 
         for i in range(1, len(SIDList) + 1):
             SIDComb = combinations(SIDList, i)
@@ -71,17 +77,17 @@ class accessControlPoly:
             for everyComb in SIDComb:
                 multip = 1
                 for everyTerm in everyComb:
-                    multip = multip * everyTerm % self.bigPrime
-                polyTerm = (polyTerm + multip) % self.bigPrime
+                    multip = multip * everyTerm % bigPrimeInt 
+                polyTerm = (polyTerm + multip) % bigPrimeInt
             ACP.append(polyTerm)
-        ACP[len(ACP) - 1] = (ACP[len(ACP) - 1] + newSecretKeyHex) % self.bigPrime
+        ACP[len(ACP) - 1] = (ACP[len(ACP) - 1] + newSecretKeyHex) % bigPrimeInt 
         #ACP is a list contains all the poly terms, maybe return this in Json objects to the client side to compute the secret key
         #ACP[0] = random number, ACP[1] = big prime
         #maybe also store the list to the database for queries later
         Roles.objects.filter(role=self.curRole).update(role_key=newSecretKey)
+        print(f"database secret key: {newSecretKey}")
         # return ACP
-        self.coefficientList = ACP
-
+        self.coefficientList = ACP[2:]
 
     #depend on the registration
     def assignSID(self):

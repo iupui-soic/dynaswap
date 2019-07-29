@@ -11,6 +11,7 @@ def hashMultipleToOneInt(listOfValuesToHash):
     result = hashlib.md5(concatedHashes.encode('utf-8')).hexdigest()
     return int(result, 16)
 
+
 class Client:
     def __init__(self, uri, user_id, SID=None, z=None, p=None, coefficientList=None, secret_key=None, private_key=None, user_uuid=None):
         """Constructor"""
@@ -58,7 +59,7 @@ class Client:
     
     async def receive_public_data(self, data):
         self.z = int(data['z'])
-        self.p = int(data['p'])
+        self.p = int(data['p'], 16)
         self.coefficientList = json.loads(data['coefficientList'])
         print(f"z is now: {self.z}\np is now: {self.p}\ncoefficientList is now: {self.coefficientList}")
     
@@ -82,16 +83,26 @@ class Client:
         if self.coefficientList == None:
             raise ValueError("Must have coefficient list to calculate the secret key")
 
-        startingExponentNum = len(self.coefficientList)-1
-        sumTotal = 0
-        for coefficient in self.coefficientList:
-            coefficientNum = int(coefficient)
-            if startingExponentNum > 0:
-                sumTotal += (coefficientNum * (x ** startingExponentNum))
-            else:
-                sumTotal += coefficientNum
-            startingExponentNum -= 1
-        self.secret_key = (sumTotal % p)
+        # startingExponentNum = len(self.coefficientList)-1
+        # sumTotal = 0
+        # for coefficient in self.coefficientList:
+        #     coefficientNum = int(coefficient)
+        #     if startingExponentNum > 0:
+        #         sumTotal += (coefficientNum * (x ** startingExponentNum))
+        #     else:
+        #         sumTotal += coefficientNum
+        #     startingExponentNum -= 1
+        # self.secret_key = (sumTotal % p)
+
+        bigPrimeInt = self.p
+        cur = 1
+        res = 0
+        for i in range(0, len(self.coefficientList)):
+            res = (res + cur * (self.coefficientList[len(self.coefficientList) - i - 1])) % bigPrimeInt
+            cur *= x
+        print(f"result: {res}")
+        print(f"hex result: {hex(res)}")
+
     
     def calc_own_private_key(self):
         self.private_key = hashMultipleToOneInt([self.secret_key, self.user_uuid])
@@ -116,6 +127,7 @@ if __name__ == "__main__":
     loop.run_until_complete(client.receive_JSON(connection))
     loop.run_until_complete(client.send_action(connection, "request_public_data"))
     loop.run_until_complete(client.receive_JSON(connection))
+    # my_hash = (hashMultipleToOneInt([client.SID, client.z]) % client.p)
     my_hash = hashMultipleToOneInt([client.SID, client.z])
     print(f"hash value of SID and z: {my_hash}")
     client.calc_secret_key(my_hash, client.p)
