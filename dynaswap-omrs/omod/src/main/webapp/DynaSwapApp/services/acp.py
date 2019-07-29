@@ -9,10 +9,12 @@ import struct
 # concat values together and then hash
 def hashMultipleToOneInt(listOfValuesToHash):
     concatedHashes = ""
-    for value in listOfValuesToHash:
-        concatedHashes += str(value)
+    #for value in listOfValuesToHash:
+        #concatedHashes += str(value)
+    concatedHashes += str(listOfValuesToHash[0])
+    concatedHashes += str(listOfValuesToHash[1])
     result = hashlib.md5(concatedHashes.encode('utf-8')).hexdigest()
-    return int(result, 16)
+    return int(result, 16) % listOfValuesToHash[2]
 
 #I'm assuming that the User model has a new field 'SID', and it's assigned during the registration for now.
 #And UsersRoles model has new fields 'big_prime', 'random_number' indicating the prime and random number used in the function
@@ -62,13 +64,14 @@ class accessControlPoly:
             SID = Users.objects.filter(user_id=user_id_num)[0].SID
             SIDList.append(hashMultipleToOneInt([SID, self.randomNum, self.bigPrime]))
 
-        for i in range(1, len(SIDList)):
+        for i in range(1, len(SIDList) + 1):
             SIDComb = combinations(SIDList, i)
             polyTerm = 0
-            multip = 1
+            
             for everyComb in SIDComb:
+                multip = 1
                 for everyTerm in everyComb:
-                    multip = multip * everyComb % self.bigPrime
+                    multip = multip * everyTerm % self.bigPrime
                 polyTerm = (polyTerm + multip) % self.bigPrime
             ACP.append(polyTerm)
         ACP[len(ACP) - 1] = (ACP[len(ACP) - 1] + newSecretKeyHex) % self.bigPrime
