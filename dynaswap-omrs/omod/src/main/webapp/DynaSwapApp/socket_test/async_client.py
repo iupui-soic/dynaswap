@@ -96,16 +96,16 @@ class Client:
     def calc_own_private_key(self):
         self.private_key = hashMultipleToOneInt([self.secret_key, self.user_uuid])
     
-    def access_role(self, cur_role_id, target_role_id):
-        if cur_role_id == target_role_id:
-            return True
-        for child in self.public_graph[cur_role_id]:
-            # hash of own private key and child's public uuid
-            hashed = hashMultipleToOneInt([self.private_key, child[0]])
-            edge_key = int(child[1], 16)
-            child_private_key = edge_key ^ hashed
-            print(child_private_key)
-        return False
+    # def access_role(self, cur_role_id, target_role_id):
+    #     if cur_role_id == target_role_id:
+    #         return True
+    #     for child in self.public_graph[cur_role_id]:
+    #         # hash of own private key and child's public uuid
+    #         hashed = hashMultipleToOneInt([self.private_key, child[0]])
+    #         edge_key = int(child[1], 16)
+    #         child_private_key = edge_key ^ hashed
+    #         print(child_private_key)
+    #     return False
 
 
 if __name__ == "__main__":

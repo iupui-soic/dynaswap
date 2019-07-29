@@ -38,7 +38,7 @@ class ServerConsumer(WebsocketConsumer):
         role_for_user = str(UsersRoles.objects.get(user_id=user_id).role)
         z = str(Roles.objects.get(role=role_for_user).random_num)
         p = str(Roles.objects.get(role=role_for_user).big_prime)
-        coefficientList = graph.nodes[role_for_user].access_control_poly.updateACP(graph.KeyManagement.generateSecretKey())
+        coefficientList = graph.nodes[role_for_user].access_control_poly.coefficientList
         coefficientListJSON = json.dumps(coefficientList)
 
         self.send(text_data=json.dumps({

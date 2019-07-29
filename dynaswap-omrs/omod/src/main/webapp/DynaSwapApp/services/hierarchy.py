@@ -20,7 +20,7 @@ def hashMultipleToOne(listOfValuesToHash):
     concatedHashes = ""
     for value in listOfValuesToHash:
         concatedHashes += value
-    result = hashlib.sha256(concatedHashes.encode('utf-8')).hexdigest()
+    result = hashlib.md5(concatedHashes.encode('utf-8')).hexdigest()
     return result
 
 
@@ -126,11 +126,15 @@ class HierarchyGraph:
 
     def addRole(self, roleName, roleDesc):
         pubid = self.KeyManagement.generatePublicId()
-        privateKey = self.KeyManagement.generatePrivateKey()
-        newNode = Node(roleName, roleDesc, pubid, None, privateKey)
+        secret_key = self.KeyManagement.generateSecretKey()
+        # privateKey = self.KeyManagement.generatePrivateKey()
+        # newNode = Node(roleName, roleDesc, pubid, None, privateKey)
+        private_key = hashMultipleToOne([secret_key, pubid])
+        newNode = Node(roleName, roleDesc, pubid, secret_key, private_key)
+        newNode.access_control_poly.updateACP(secret_key)
         self.nodes[roleName] = newNode
         # Save node information to the database
-        Roles(role=roleName, description=roleDesc, uuid=pubid, role_second_key=privateKey).save()
+        Roles(role=roleName, description=roleDesc, uuid=pubid, role_key=secret_key, role_second_key=private_key).save()
         #calculate time elapsed
         elapsed = time.time() - start_time
         print(elapsed)

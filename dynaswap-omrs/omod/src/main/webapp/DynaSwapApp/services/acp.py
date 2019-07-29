@@ -23,6 +23,7 @@ class accessControlPoly:
         self.curRole = curRole
         self.updatePrime()
         self.updateRandNum()
+        self.coefficientList = None
 
     def updatePrime(self):
         # Models says that integer can go up to 128 but MYSQL caps ints at (2^32)-1? So just use 30 for now
@@ -38,6 +39,7 @@ class accessControlPoly:
     def updateACP(self, newSecretKey):
         # self.randomNum = os.urandom(128)
         self.updateRandNum()
+        self.updatePrime()
         # keyManage = KeyManagement(128)
         # newSecretKey = int(keyManage.generateSecretKey())
         newSecretKeyHex = int(newSecretKey, 16)
@@ -74,7 +76,8 @@ class accessControlPoly:
         #ACP[0] = random number, ACP[1] = big prime
         #maybe also store the list to the database for queries later
         Roles.objects.filter(role=self.curRole).update(role_key=newSecretKey)
-        return ACP
+        # return ACP
+        self.coefficientList = ACP
 
 
     #depend on the registration
