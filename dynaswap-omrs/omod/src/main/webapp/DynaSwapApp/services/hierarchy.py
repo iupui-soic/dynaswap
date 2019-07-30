@@ -59,6 +59,7 @@ class KeyManagement:
         self.keyLength = keyLength
 
     def calcEdgeKey(self, parentPrivateKey, childPrivateKey, childLabel):
+        print(f"parent: {parentPrivateKey}, child: {childPrivateKey}, childlabel: {childLabel}")
         hashed = hashMultipleToOneInt([parentPrivateKey, childLabel])
         # edgeKey = xor_two_strings(childPrivateKey, hashed)
         edgeKey = int(childPrivateKey, 16) ^ hashed
@@ -87,29 +88,32 @@ class HierarchyGraph:
 
     #add edge to the graph
     def addEdge(self, parentRoleName, childRoleName):
-        # Need to edit this function so that it uses isCyclic to make sure that adding an edge doesn't violate DAG
-        parentRole = Roles.objects.get(role=parentRoleName)
-        childRole = Roles.objects.get(role=childRoleName)
-        parentPrivateKey = parentRole.role_second_key
-        childPrivateKey = childRole.role_second_key
-        childLabel = childRole.uuid
-        edgeKey = self.KeyManagement.calcEdgeKey(parentPrivateKey, childPrivateKey, childLabel)
-        # print(f"parentPrivateKey: {parentPrivateKey}\nchildPrivateKey: {childPrivateKey}\nchildLabel: {childLabel}\nedgeKey: {edgeKey}")
-        # Create new edge object for local graph
-        newEdge = Edge(edgeKey)
-        # Use the names of parent and child roles for key names
-        self.nodes[parentRole.role].edges[childRole.role] = newEdge
-        # After adding edge check to make sure it isn't cylic (this graph should be a DAG)
-        if not self.isCyclic():
-            # If it isn't cyclic then it can be saved to the database
-            RoleEdges(parent_role=parentRole, child_role=childRole, edge_key=edgeKey).save()
-        # Otherwise it's cyclic and we need to remove it
-        else:
-            del self.nodes[parentRole.role].edges[childRole.role]
-            raise CyclicError
-        #calculate elapsed time
-        elapsed = time.time() - start_time
-        print(elapsed)
+        # Need to make sure edge doesn't already exist in database before doing anything
+        if not RoleEdges.objects.filter(parent_role=parentRoleName, child_role=childRoleName).exists():
+            # Need to edit this function so that it uses isCyclic to make sure that adding an edge doesn't violate DAG
+            parentRole = Roles.objects.get(role=parentRoleName)
+            childRole = Roles.objects.get(role=childRoleName)
+            parentPrivateKey = parentRole.role_second_key
+            childPrivateKey = childRole.role_second_key
+            childLabel = childRole.uuid
+            edgeKey = self.KeyManagement.calcEdgeKey(parentPrivateKey, childPrivateKey, childLabel)
+            # print(f"parentPrivateKey: {parentPrivateKey}\nchildPrivateKey: {childPrivateKey}\nchildLabel: {childLabel}\nedgeKey: {edgeKey}")
+            # Create new edge object for local graph
+            newEdge = Edge(edgeKey)
+            print(f"parent: {parentRole}, child: {childRole}, edge key: {edgeKey}")
+            # Use the names of parent and child roles for key names
+            self.nodes[parentRole.role].edges[childRole.role] = newEdge
+            # After adding edge check to make sure it isn't cylic (this graph should be a DAG)
+            if not self.isCyclic():
+                # If it isn't cyclic then it can be saved to the database
+                RoleEdges(parent_role=parentRole, child_role=childRole, edge_key=edgeKey).save()
+            # Otherwise it's cyclic and we need to remove it
+            else:
+                del self.nodes[parentRole.role].edges[childRole.role]
+                raise CyclicError
+            #calculate elapsed time
+            elapsed = time.time() - start_time
+            print(elapsed)
 
     #add a new role
     # def addRole(self, roleName, roleDesc, pubid, secretKey):

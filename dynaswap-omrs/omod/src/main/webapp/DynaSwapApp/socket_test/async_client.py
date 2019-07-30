@@ -69,6 +69,7 @@ class Client:
         # This is the uuid of the role where the user starts at
         self.user_uuid = data['user_uuid']
         self.public_graph = data['public_graph']
+        print(f"graph: {data['public_graph']}")
         print("Now have public info from graph")
         self.calc_own_private_key()
         print(f"private_key is now: {self.private_key}")
@@ -110,7 +111,7 @@ class Client:
         print(f"client uuid: {self.user_uuid}")
         print(f"client secret_key: {self.secret_key}")
         # The secret key that is used on the server side is formatted as a hex string without '0x' at the front
-        # The client side secret key is stored as an into so the formatting must be changed
+        # The client side secret key is stored as an int so the formatting must be changed
         formatted_secret_key = hex(self.secret_key)[2:]
         self.private_key = hashMultipleToOneInt([formatted_secret_key, self.user_uuid])
     
@@ -119,10 +120,16 @@ class Client:
     #         return True
     #     for child in self.public_graph[cur_role_id]:
     #         # hash of own private key and child's public uuid
-    #         hashed = hashMultipleToOneInt([self.private_key, child[0]])
-    #         edge_key = int(child[1], 16)
+    #         priv_key = hex(self.private_key)[2:]
+    #         print(f"priv key: {priv_key}")
+    #         hashed = hashMultipleToOneInt([hex(self.private_key)[2:], child[0]])
+    #         print(f"child_label: {child[0]}")
+    #         edge_key = int(child[1])
+    #         print(f"edge key {edge_key}")
     #         child_private_key = edge_key ^ hashed
-    #         print(child_private_key)
+    #         print(f"child private key hex: {hex(child_private_key)}")
+    #         if self.access_role(child[0], target_role_id):
+    #             return True
     #     return False
 
 

@@ -9,6 +9,8 @@ graph.createGraph()
 graph.addRole('test1', 'testing 1')
 graph.addRole('test2', 'testing 2')
 graph.addEdge('test1', 'test2')
+graph.addRole('test3', 'testing 3')
+graph.addEdge('test2', 'test3')
 graph.addUser(10, 'test1')
 
 # graph.assignSID(5)
