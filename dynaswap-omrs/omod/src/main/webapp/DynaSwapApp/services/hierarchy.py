@@ -129,15 +129,20 @@ class HierarchyGraph:
         secret_key = self.KeyManagement.generateSecretKey()
         # privateKey = self.KeyManagement.generatePrivateKey()
         # newNode = Node(roleName, roleDesc, pubid, None, privateKey)
+        print(f"SERVER uuid: {pubid}")
+        print(f"SERVER secret_key: {secret_key}")
         private_key = hashMultipleToOne([secret_key, pubid])
+        print(f"SERVER private_key: {private_key}")
         newNode = Node(roleName, roleDesc, pubid, secret_key, private_key)
-        newNode.access_control_poly.updateACP(secret_key)
         self.nodes[roleName] = newNode
         # Save node information to the database
         Roles(role=roleName, description=roleDesc, uuid=pubid, role_key=secret_key, role_second_key=private_key).save()
+        # Cant update acp before Role is created in database because updateACP saves additional info to Role
+        newNode.access_control_poly.updateACP(secret_key)
         #calculate time elapsed
         elapsed = time.time() - start_time
         print(elapsed)
+    
 
     #read data from database and add roles and edges
     def createGraph(self):
@@ -287,8 +292,8 @@ class HierarchyGraph:
             useObj = Users.objects.get(user_id=userID)
             roleObj = Roles.objects.get(role=roleID)
             UsersRoles(user_id=useObj, role=roleObj).save()
-        # Not sure if this actually needs to be done here
-        return self.nodes[roleID].access_control_poly.updateACP(self.KeyManagement.generateSecretKey())
+            # Not sure if this actually needs to be done here
+            # self.nodes[roleID].access_control_poly.updateACP(self.KeyManagement.generateSecretKey())
     
     def assignSID(self, userID):
         SID = self.KeyManagement.generateSecretKey()

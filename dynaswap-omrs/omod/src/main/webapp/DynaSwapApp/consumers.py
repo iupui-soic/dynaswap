@@ -52,6 +52,7 @@ class ServerConsumer(WebsocketConsumer):
     def publicize_graph_data(self, user_id):
         user_role = UsersRoles.objects.get(user_id=user_id).role
         user_uuid = user_role.uuid
+        print(f"SERVER user_uuid: {user_uuid}")
         public_graph = {}
         for roles in Roles.objects.all():
             public_graph[roles.uuid] = []

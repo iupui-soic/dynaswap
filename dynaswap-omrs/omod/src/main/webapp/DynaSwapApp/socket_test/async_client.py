@@ -72,6 +72,7 @@ class Client:
         print("Now have public info from graph")
         self.calc_own_private_key()
         print(f"private_key is now: {self.private_key}")
+        print(f"private_key as hex: {hex(self.private_key)}")
     
     async def send_action(self, websocket, action_message):
         message = {"action": action_message, "user_id": self.user_id}
@@ -100,12 +101,18 @@ class Client:
         for i in range(0, len(self.coefficientList)):
             res = (res + cur * (self.coefficientList[len(self.coefficientList) - i - 1])) % bigPrimeInt
             cur *= x
-        print(f"result: {res}")
-        print(f"hex result: {hex(res)}")
+        # print(f"result: {res}")
+        # print(f"hex result: {hex(res)}")
+        self.secret_key = res
 
     
     def calc_own_private_key(self):
-        self.private_key = hashMultipleToOneInt([self.secret_key, self.user_uuid])
+        print(f"client uuid: {self.user_uuid}")
+        print(f"client secret_key: {self.secret_key}")
+        # The secret key that is used on the server side is formatted as a hex string without '0x' at the front
+        # The client side secret key is stored as an into so the formatting must be changed
+        formatted_secret_key = hex(self.secret_key)[2:]
+        self.private_key = hashMultipleToOneInt([formatted_secret_key, self.user_uuid])
     
     # def access_role(self, cur_role_id, target_role_id):
     #     if cur_role_id == target_role_id:
@@ -132,6 +139,7 @@ if __name__ == "__main__":
     print(f"hash value of SID and z: {my_hash}")
     client.calc_secret_key(my_hash, client.p)
     print(f"secret key is: {client.secret_key}")
+    print(f"secret key as hex: {hex(client.secret_key)}")
     loop.run_until_complete(client.send_action(connection, "request_public_graph_data"))
     loop.run_until_complete(client.receive_JSON(connection))
     # client.access_role(client.user_uuid, 'test3')
