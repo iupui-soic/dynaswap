@@ -3,9 +3,11 @@ import json
 from DynaSwapApp.services.hierarchy import HierarchyGraph
 from DynaSwapApp.models import Users, UsersRoles, Roles, RoleEdges
 from channels.db import database_sync_to_async
+import time
 
 graph = HierarchyGraph()
 graph.createGraph()
+ 
 graph.addRole('test1', 'testing 1')
 graph.addRole('test2', 'testing 2')
 graph.addEdge('test1', 'test2')
@@ -32,7 +34,7 @@ class ServerConsumer(WebsocketConsumer):
         if action == "request_public_data":
             self.publicize_data(user_id)
         elif action == "request_SID":
-            self.sendSID(user_id)
+            self.send_SID(user_id)
         elif action == "request_public_graph_data":
             self.publicize_graph_data(user_id)
     
@@ -40,13 +42,13 @@ class ServerConsumer(WebsocketConsumer):
         role_for_user = str(UsersRoles.objects.get(user_id=user_id).role)
         z = str(Roles.objects.get(role=role_for_user).random_num)
         p = str(Roles.objects.get(role=role_for_user).big_prime)
-        coefficientList = graph.nodes[role_for_user].access_control_poly.coefficientList
-        coefficientListJSON = json.dumps(coefficientList)
+        coefficient_list = graph.nodes[role_for_user].access_control_poly.coefficientList
+        coefficient_list_JSON = json.dumps(coefficient_list)
 
         self.send(text_data=json.dumps({
             'action': 'receive_public_data',
             'z': z,
-            'coefficientList': coefficientListJSON,
+            'coefficient_list': coefficient_list_JSON,
             'p': p
 
         }))
@@ -69,7 +71,7 @@ class ServerConsumer(WebsocketConsumer):
             'public_graph': public_graph
         }))
     
-    def sendSID(self, user_id):
+    def send_SID(self, user_id):
         """Right now the user login functionality is not working. Ideally if a user could log in
         then this function would take a user_id as an input and be able to detemine if this user already
         has an SID or needs to be assigned a new one."""
