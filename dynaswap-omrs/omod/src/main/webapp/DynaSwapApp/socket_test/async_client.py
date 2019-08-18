@@ -4,6 +4,8 @@ import json
 import hashlib
 import time
 
+HASH_OUTPUT_LENGTH = 32
+
 # concat values together and then hash
 def hash_multiple_to_one_int(list_of_values_to_hash):
     concated_hashes = ""
@@ -97,69 +99,59 @@ class Client:
         # print(f"hex result: {hex(res)}")
         self.secret_key = res
 
-    
     def calc_own_private_key(self):
         # print(f"client uuid: {self.user_uuid}")
         # print(f"client secret_key: {self.secret_key}")
         # The secret key that is used on the server side is formatted as a hex string without '0x' at the front
         # The client side secret key is stored as an int so the formatting must be changed
-        formatted_secret_key = hex(self.secret_key)[2:]
-        print(f"user_uuid: {self.user_uuid}")
+        formatted_secret_key = hex(self.secret_key)[2:].zfill(HASH_OUTPUT_LENGTH)
+        # print(f"user_uuid: {self.user_uuid}")
         self.private_key = hash_multiple_to_one_int([formatted_secret_key, self.user_uuid])
         return self.private_key
     
     def calc_private_key(self, secret_key, uuid):
         # The secret key that is used on the server side is formatted as a hex string without '0x' at the front
         # The client side secret key is stored as an int so the formatting must be changed
-        formatted_secret_key = hex(secret_key)[2:]
+        formatted_secret_key = hex(secret_key)[2:].zfill(HASH_OUTPUT_LENGTH)
         private_key = hash_multiple_to_one_int([formatted_secret_key, uuid])
         return private_key
     
-    # def access_role(self, cur_role_id, target_role_id):
-    #     if cur_role_id == target_role_id:
-    #         return True
-    #     for child in self.public_graph[cur_role_id]:
-    #         # hash of own private key and child's public uuid
-    #         priv_key = hex(self.private_key)[2:]
-    #         print(f"priv key: {priv_key}")
-    #         hashed = hash_multiple_to_one_int([hex(self.private_key)[2:], child[0]])
-    #         print(f"child_label: {child[0]}")
-    #         edge_key = int(child[1])
-    #         print(f"edge key {edge_key}")
-    #         child_private_key = edge_key ^ hashed
-    #         print(f"child private key hex: {hex(child_private_key)}")
-    #         if self.access_role(child[0], target_role_id):
-    #             return True
-    #     return False
+    def dfs(self, target_role_uuid):
+        # assume that starting uuid is the same as role in the client object
+        starting_uuid = self.user_uuid
+        # calc the private key for the clients starting uuid
+        # assume that methods to calculate private key for client have already been called
+        if self.private_key is None:
+            # for now just exit the function if private key doesn't already exist
+            return
+        # create dictionary to hold the private keys of all visited roles
+        visited_keys = {}
+        visited_keys[starting_uuid] = hex(self.private_key)[2:].zfill(HASH_OUTPUT_LENGTH)
+        return self.dfs_util(starting_uuid, target_role_uuid, visited_keys)
+    
+    def dfs_util(self, cur_role_uuid, target_role_uuid, visited_keys):
+        print(f"visited keys: {visited_keys}")
+        if cur_role_uuid == target_role_uuid:
+            return visited_keys[cur_role_uuid]
 
-    def access_role_util(self, curr_role_uuid, target_role_uuid, curr_private_key):
-        print(f"graph for {curr_role_uuid}, {self.public_graph[curr_role_uuid]}")
-        for child in self.public_graph[curr_role_uuid]:
+        # calc private key
+        parent_private_key = visited_keys[cur_role_uuid]
+        # parent_private_key = hex(parent_private_key)[2:]
+
+        # print(f"children: {self.public_graph[cur_role_uuid]}")
+        for child in self.public_graph[cur_role_uuid]:
             child_uuid = child[0]
             edge_key = int(child[1])
-            print(f"child_uuid: {child_uuid}")
-            print(f"edge_key: {edge_key}")
-            hashed = hash_multiple_to_one_int([hex(curr_private_key)[2:], child_uuid])
-            child_private_key = edge_key ^ hashed
-            self.keys[curr_role_uuid] = child_private_key
+            # if not visited
+            if child_uuid not in visited_keys:
 
-            if curr_role_uuid == target_role_uuid:
-                return self.keys[curr_role_uuid]
-            elif len(self.public_graph[child_uuid]) > 0:
-                print(f"keys: {self.keys}")
-                print(f"children: {self.public_graph[child_uuid]}")
-                for child in self.public_graph[child_uuid]:
-                    self.access_role_util(child[0], target_role_uuid, self.keys[curr_role_uuid])
-
-
-    def access_role(self, target_role_id):
-        self.keys = {}
-        # calc private key for starting node
-        cur_private_key = self.calc_own_private_key()
-        target_priv_key = self.access_role_util(self.user_uuid, '0ac28f293426290c8e7827ece2bf406a', cur_private_key)
-        print(f"target priv key {target_priv_key}")
-    
-
+                hashed = hash_multiple_to_one_int([parent_private_key, child_uuid])
+                print(f"parent_private_key: {parent_private_key}\nchild_uuid: {child_uuid}\nedge_key: {edge_key}")
+                child_private_key = hashed ^ edge_key
+                child_private_key = hex(child_private_key)[2:].zfill(HASH_OUTPUT_LENGTH)
+                # mark as visited by adding to the dictionary
+                visited_keys[child_uuid] = child_private_key
+                return self.dfs_util(child_uuid, target_role_uuid, visited_keys)
 
 
 if __name__ == "__main__":
@@ -180,4 +172,4 @@ if __name__ == "__main__":
     loop.run_until_complete(client.send_action(connection, "request_public_graph_data"))
     loop.run_until_complete(client.receive_JSON(connection))
 
-    # client.access_role('0ac28f293426290c8e7827ece2bf406a')
+    print(client.dfs('542e73f59c33f6dd97cbfffc5bc67dde'))

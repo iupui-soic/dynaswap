@@ -6,7 +6,6 @@ import os
 import time
 from .acp import hashMultipleToOneInt, accessControlPoly
 
-start_time = time.time()
 
 
 """
@@ -59,9 +58,10 @@ class KeyManagement:
         self.keyLength = keyLength
 
     def calcEdgeKey(self, parentPrivateKey, childPrivateKey, childLabel):
-        print(f"parent: {parentPrivateKey}, child: {childPrivateKey}, childlabel: {childLabel}")
+        # print(f"parent: {parentPrivateKey}, child: {childPrivateKey}, childlabel: {childLabel}")
         hashed = hashMultipleToOneInt([parentPrivateKey, childLabel])
         # edgeKey = xor_two_strings(childPrivateKey, hashed)
+        print(f"calc edge childPrivateKey: {childPrivateKey}")
         edgeKey = int(childPrivateKey, 16) ^ hashed
         return edgeKey 
     
@@ -89,31 +89,40 @@ class HierarchyGraph:
     #add edge to the graph
     def addEdge(self, parentRoleName, childRoleName):
         # Need to make sure edge doesn't already exist in database before doing anything
-        if not RoleEdges.objects.filter(parent_role=parentRoleName, child_role=childRoleName).exists():
-            # Need to edit this function so that it uses isCyclic to make sure that adding an edge doesn't violate DAG
-            parentRole = Roles.objects.get(role=parentRoleName)
-            childRole = Roles.objects.get(role=childRoleName)
-            parentPrivateKey = parentRole.role_second_key
-            childPrivateKey = childRole.role_second_key
-            childLabel = childRole.uuid
-            edgeKey = self.KeyManagement.calcEdgeKey(parentPrivateKey, childPrivateKey, childLabel)
-            # print(f"parentPrivateKey: {parentPrivateKey}\nchildPrivateKey: {childPrivateKey}\nchildLabel: {childLabel}\nedgeKey: {edgeKey}")
-            # Create new edge object for local graph
-            newEdge = Edge(edgeKey)
-            print(f"parent: {parentRole}, child: {childRole}, edge key: {edgeKey}")
-            # Use the names of parent and child roles for key names
-            self.nodes[parentRole.role].edges[childRole.role] = newEdge
-            # After adding edge check to make sure it isn't cylic (this graph should be a DAG)
-            if not self.isCyclic():
-                # If it isn't cyclic then it can be saved to the database
-                RoleEdges(parent_role=parentRole, child_role=childRole, edge_key=edgeKey).save()
-            # Otherwise it's cyclic and we need to remove it
+        # if not RoleEdges.objects.filter(parent_role=parentRoleName, child_role=childRoleName).exists():
+        # Need to edit this function so that it uses isCyclic to make sure that adding an edge doesn't violate DAG
+        parentRole = Roles.objects.get(role=parentRoleName)
+        childRole = Roles.objects.get(role=childRoleName)
+        parentPrivateKey = parentRole.role_second_key
+        childPrivateKey = childRole.role_second_key
+        childLabel = childRole.uuid
+        edgeKey = self.KeyManagement.calcEdgeKey(parentPrivateKey, childPrivateKey, childLabel)
+        # print(f"parentPrivateKey: {parentPrivateKey}\nchildPrivateKey: {childPrivateKey}\nchildLabel: {childLabel}\nedgeKey: {edgeKey}")
+        # Create new edge object for local graph
+        newEdge = Edge(edgeKey)
+        # print(f"parent: {parentRole}, child: {childRole}, edge key: {edgeKey}")
+        # Use the names of parent and child roles for key names
+        self.nodes[parentRole.role].edges[childRole.role] = newEdge
+        # After adding edge check to make sure it isn't cylic (this graph should be a DAG)
+        # If it isn't cyclic then it can be saved to the database
+        if not self.isCyclic():
+            # It might make more sense to have django return a single object rather than a queryset
+            # But for some reason when doing that django creates new entries rather than updating, I think there may be an issue with primary key configuration
+            role_edge = RoleEdges.objects.filter(parent_role=parentRole, child_role=childRole)
+            # check to see if there is already a role edge entry in the database
+            if len(role_edge) > 0:
+                # if the edge relationship already exists, just change the edge key
+                role_edge.update(edge_key=edgeKey)
             else:
-                del self.nodes[parentRole.role].edges[childRole.role]
-                raise CyclicError
-            #calculate elapsed time
-            elapsed = time.time() - start_time
-            print(elapsed)
+                # otherwise create a new role edge
+                RoleEdges(parent_role=parentRole, child_role=childRole, edge_key=edgeKey).save()
+        # Otherwise it's cyclic and we need to remove it
+        else:
+            del self.nodes[parentRole.role].edges[childRole.role]
+            raise CyclicError
+        #calculate elapsed time
+        # elapsed = time.time() - start_time
+        # print(elapsed)
 
     #add a new role
     # def addRole(self, roleName, roleDesc, pubid, secretKey):
@@ -129,11 +138,12 @@ class HierarchyGraph:
     #     print(elapsed)
 
     def addRole(self, roleName, roleDesc):
+        # start_time = time.time()
         pubid = self.KeyManagement.generatePublicId()
         secret_key = self.KeyManagement.generateSecretKey()
         # privateKey = self.KeyManagement.generatePrivateKey()
         # newNode = Node(roleName, roleDesc, pubid, None, privateKey)
-        print(f"SERVER uuid: {pubid}")
+        # print(f"SERVER uuid: {pubid}")
         print(f"SERVER secret_key: {secret_key}")
         private_key = hashMultipleToOne([secret_key, pubid])
         print(f"SERVER private_key: {private_key}")
@@ -144,8 +154,8 @@ class HierarchyGraph:
         # Cant update acp before Role is created in database because updateACP saves additional info to Role
         newNode.access_control_poly.updateACP(secret_key)
         #calculate time elapsed
-        elapsed = time.time() - start_time
-        print(elapsed)
+        # elapsed = time.time() - start_time
+        # print(elapsed)
     
 
     #read data from database and add roles and edges
