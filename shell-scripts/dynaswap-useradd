@@ -88,6 +88,36 @@ sudo useradd -d /home/bhaakens -s /bin/bash -m bhaakens> /dev/null
 		sudo usermod -aG users bhaakens
 		sudo usermod -aG sudo bhaakens
 	fi
+
+sudo useradd -d /home/shregoya -s /bin/bash -m shregoya> /dev/null
+	if [ $? -ne 0 ]
+		then
+		sudo echo 'ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAgkY2Cl4mUNOurIvToU0aq4nsXJoX1ssggn59bMknYOZEGV+qfGuDt21nq69uj/mnKADhnv2P/VI/N+lwWudYkADn3p/sw5CzpGZf9yWNdQfqNMZgQtzLmLShZ0DEvTwHObZ0pYJkjae3hwR2II0Lryn/EDG/8bW5bcMXWvUgRr0moMbsHh/UzKItd/K0auQPfSmOQNGmBLeGQposHPyMftDdhCPMNZL4n41p8TnA0OdtJHPGhgrOgOOEGxB+AV6XVbD7KnAEjJn6YpCadT2yCs0CGqchyqp1vJ0P+7ZE/vSwT11FWcVHVJWmf0qnfJTNEf22mJFTzVkA5F/beNWLsQ== rsa-key-20191017'>/home/shregoya/.ssh/authorized_keys
+	else
+		sudo mkdir -p /home/shregoya/.ssh/
+		sudo chmod 700 /home/shregoya/.ssh/
+		sudo chown shregoya:shregoya /home/shregoya/.ssh
+		sudo touch /home/shregoya/.ssh/authorized_keys
+		sudo echo 'ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAgkY2Cl4mUNOurIvToU0aq4nsXJoX1ssggn59bMknYOZEGV+qfGuDt21nq69uj/mnKADhnv2P/VI/N+lwWudYkADn3p/sw5CzpGZf9yWNdQfqNMZgQtzLmLShZ0DEvTwHObZ0pYJkjae3hwR2II0Lryn/EDG/8bW5bcMXWvUgRr0moMbsHh/UzKItd/K0auQPfSmOQNGmBLeGQposHPyMftDdhCPMNZL4n41p8TnA0OdtJHPGhgrOgOOEGxB+AV6XVbD7KnAEjJn6YpCadT2yCs0CGqchyqp1vJ0P+7ZE/vSwT11FWcVHVJWmf0qnfJTNEf22mJFTzVkA5F/beNWLsQ== rsa-key-20191017'>/home/shregoya/.ssh/authorized_keys
+		sudo chown shregoya:shregoya /home/shregoya/.ssh/authorized_keys
+		sudo usermod -aG users shregoya
+		sudo usermod -aG sudo shregoya
+	fi
+	
+sudo useradd -d /home/almbritt -s /bin/bash -m almbritt> /dev/null
+	if [ $? -ne 0 ]
+		then
+		sudo echo 'ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAw1OnVGilC6s+/eXHv/VILtbFQHqi9w5+tBz3In14eK71ebxcb4OqYX2T2i7Ts8i24Uf7AXuNl9evumn8Bq0Esp+ZB6K1yEfocc+oj8tI8vWpJ7pJF1NUYKaN4qbCu8u0CSZYFSONBg80GOMuUHbCP/bdO3F8eic/+BjbCogfExkbfHym35NzFy0G20z9pxYFGdpcoVRpNnd5vtixEEzXSZf4dM6sLJ1hvEpqqtkbROXKjxyXGOnXKnGdil7vmL91MDie9BJiQfRp9NjLpgPb3aCKx4JlEdZZnUSR1ual+d5zpHDld1jZwsQp5FfyT4k/AX/Ag/s4YhvwggLHvVDBzw== rsa-key-20191017'>/home/almbritt/.ssh/authorized_keys
+	else
+		sudo mkdir -p /home/almbritt/.ssh/
+		sudo chmod 700 /home/almbritt/.ssh/
+		sudo chown almbritt:almbritt /home/almbritt/.ssh
+		sudo touch /home/almbritt/.ssh/authorized_keys
+		sudo echo 'ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAw1OnVGilC6s+/eXHv/VILtbFQHqi9w5+tBz3In14eK71ebxcb4OqYX2T2i7Ts8i24Uf7AXuNl9evumn8Bq0Esp+ZB6K1yEfocc+oj8tI8vWpJ7pJF1NUYKaN4qbCu8u0CSZYFSONBg80GOMuUHbCP/bdO3F8eic/+BjbCogfExkbfHym35NzFy0G20z9pxYFGdpcoVRpNnd5vtixEEzXSZf4dM6sLJ1hvEpqqtkbROXKjxyXGOnXKnGdil7vmL91MDie9BJiQfRp9NjLpgPb3aCKx4JlEdZZnUSR1ual+d5zpHDld1jZwsQp5FfyT4k/AX/Ag/s4YhvwggLHvVDBzw== rsa-key-20191017'>/home/almbritt/.ssh/authorized_keys
+		sudo chown almbritt:almbritt /home/almbritt/.ssh/authorized_keys
+		sudo usermod -aG users almbritt
+		sudo usermod -aG sudo almbritt
+	fi
 	
 case $1 in
 start)
