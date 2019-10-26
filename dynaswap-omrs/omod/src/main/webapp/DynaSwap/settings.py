@@ -11,13 +11,35 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
-import cv2
 from DynaSwapApp.services.face_models.MTCNN import MtcnnService
 from DynaSwapApp.services.face_models.FNET import FnetService
 
 #Initialize singletons
 MtcnnService()
 FnetService()
+
+
+def get_db_connection_configs(file_name):
+    ''' retrieve the database connection configurations from the given file '''
+    configs = {}
+    try:
+        lines = [line.rstrip('\n') for line in open(file_name)]
+        conn_str = [line[15:].split('?')[0] for line in lines if line.startswith('connection.url=')][0]
+        parts = conn_str.split('\:')
+        configs["host"] = parts[2][2:]
+        configs["port"] = parts[3][:4]
+        configs["user"] = [line[20:] for line in lines if line.startswith('connection.username=')][0]
+        configs["passwd"] = [line[20:] for line in lines if line.startswith('connection.password=')][0]
+        configs["schema"] = conn_str[conn_str.rfind('/') + 1:]
+    except:
+        print('ERROR : Unable to retrieve database connection parameters')
+        configs["host"] = configs["port"] = configs["user"] = configs["passwd"] = configs["schema"] = ''
+
+    for k, v in configs.items():
+        configs[k] = configs[k].replace("\\", "")
+
+    return {'host': configs["host"], 'port': configs["port"], 'user': configs["user"], 'passwd': configs["passwd"], 'schema': configs["schema"]}
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -32,7 +54,7 @@ SECRET_KEY = '=1=yquob*6e-+6jhu)7yw$z8z0_$y87el099ps9hnpy0h4*1fa'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["dynaswap.info"]
 
 
 # Application definition
@@ -81,12 +103,16 @@ WSGI_APPLICATION = 'DynaSwap.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
+configs = get_db_connection_configs('/var/lib/OpenMRS/openmrs-runtime.properties')
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'OPTIONS': {
-            'read_default_file': os.path.join(BASE_DIR, 'DynaSwap/my.cnf'),
-        },
+        'NAME': configs['schema'],
+        'USER': configs['user'],
+        'PASSWORD': configs['passwd'],
+        'HOST': configs['host'],
+        'PORT': configs['port'],
     }
 }
 

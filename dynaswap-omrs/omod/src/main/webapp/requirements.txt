@@ -2,7 +2,7 @@ absl-py==0.6.1
 astor==0.7.1
 astroid==2.1.0
 colorama==0.4.1
-Django==2.1.11
+Django==2.1.7
 gast==0.2.0
 grpcio==1.17.1
 isort==4.3.4
@@ -11,7 +11,6 @@ Markdown==3.0.1
 mccabe==0.6.1
 mysqlclient==1.4.2.post1
 numpy==1.14.5
-opencv-contrib-python==3.4.3.18
 opencv-python==3.4.3.18
 Pillow==5.2.0
 protobuf==3.6.1
@@ -21,9 +20,9 @@ scikit-learn==0.20.2
 scipy==1.2.0
 six==1.12.0
 sklearn==0.0
-tensorboard==1.12.1
-tensorflow==1.12.1
+tensorboard==1.14.0
+tensorflow==1.14.0
 termcolor==1.1.0
 typed-ast==1.1.1
-Werkzeug==0.15.3
+Werkzeug==0.14.1
 wrapt==1.10.11
