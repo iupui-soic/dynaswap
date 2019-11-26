@@ -12,7 +12,7 @@ OPENMRS_HOME = 'https://dynaswap.info/openmrs'
 
 @pytest.fixture
 def browser():
-  driver = Firefox()
+  driver = Firefox(options=options)
   driver.implicitly_wait(10)
   yield driver
   driver.quit()

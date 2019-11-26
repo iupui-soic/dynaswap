@@ -4,6 +4,7 @@ from selenium.webdriver import Firefox
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.firefox.options import Options
 from pytest_bdd import parsers
+
 options = Options()
 options.headless = True
 
@@ -12,7 +13,7 @@ OPENMRS_HOME = 'https://dynaswap.info/openmrs'
 
 @pytest.fixture
 def browser():
-  driver = Firefox()
+  driver = Firefox(options=options)
   driver.implicitly_wait(10)
   yield driver
   driver.quit()
