@@ -50,7 +50,7 @@ def login_username(browser):
         login_button = browser.find_element_by_id('loginButton')
         login_button.click()
 
-        if browser.current_url == 'OPENMRS_HOME + '/referenceapplication/home.page':
+        if browser.current_url == OPENMRS_HOME + '/referenceapplication/home.page':
             temp=temp+1
             break
         
@@ -88,4 +88,4 @@ def login_username(browser):
 # Then Steps
 @pytest_bdd.then('check whether the systems allows to login with correct credentials or not')
 def login_results(browser):
-    assert browser.current_url == 'OPENMRS_HOME + '/referenceapplication/home.page'
+    assert browser.current_url == OPENMRS_HOME + '/referenceapplication/home.page'
