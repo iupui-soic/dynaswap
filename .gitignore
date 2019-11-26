@@ -70,3 +70,8 @@ buildNumber.properties
 __pycache__/
 *.py[cod]
 *$py.class
+.cache
+
+#Windows executables
+*.exe
+*.log
