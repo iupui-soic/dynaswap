@@ -1,0 +1,50 @@
+from flask import Flask, request
+import requests
+import xml.etree.ElementTree as ET
+
+app = Flask(__name__)
+
+
+@app.route("/DAR", methods=['POST'])
+def pingrequest():
+    json = request.get_json(force=True)
+    ipAddr = json['ip']
+    def change(a):
+        return a.replace(".", "-")
+    f=open("key", "r")
+    if f.mode == 'r':
+        key=f.read()
+
+    URL = "https://api.namecheap.com/xml.response?"
+    PARAMS = {"apiuser":"sunbiz3000", "username":"sunbiz3000", "apikey":key, "ClientIp":"134.68.246.112", "Command":"namecheap.domains.dns.getHosts", "SLD":'dynaswap', "TLD":"info"} 
+    ClientIp="134.68.246.112"
+    resp = requests.get(url = URL, params = PARAMS)
+    print(resp.text)
+
+    root = ET.fromstring(resp.text)
+
+    i=0
+    Names=[]
+    Type=[]
+    Address=[]
+    for child in root:
+        for subchild in child:
+            for host in subchild:
+                
+                Names.append(host.attrib['Name'])
+                Type.append(host.attrib['Type'])
+                Address.append(host.attrib['Address'])
+                i=i+1
+                
+    URL1 = "https://api.namecheap.com/xml.response?"
+    PARAMS1 = {'apiuser':'sunbiz3000', "username":"sunbiz3000", "apikey":key, "ClientIp":"134.68.246.112", "Command":"namecheap.domains.dns.setHosts", "SLD":'dynaswap', "TLD":"info", "HostName1":change(ipAddr), "RecordType1":"A", "Address1":ipAddr} 
+    for j in range(0, i):
+        HostName="HostName" + str(j+2)
+        RecordType="RecordType" + str(j+2)
+        Addr="Address" + str(j+2)
+        PARAMS1.update({HostName: Names[j+0], RecordType: Type[j+0], Addr: Address[j+0]})   
+    r = requests.get(url = URL1, params = PARAMS1) 
+    return str(r.status_code)
+
+if __name__ == "__main__":
+    app.run()
