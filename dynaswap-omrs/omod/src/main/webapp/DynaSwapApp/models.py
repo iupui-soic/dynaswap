@@ -3,9 +3,9 @@ from django.db import models
 
 
 class Roles(models.Model):
-    """  openMRS Roles Class  """
+    """  OpenMRS role Class  """
     class Meta:
-        db_table = 'role'
+        db_table = "role"
     role = models.CharField(max_length=50, unique=True, primary_key=True)
     description = models.CharField(max_length=255)
     uuid = models.CharField(max_length=38)
@@ -17,18 +17,18 @@ class Roles(models.Model):
 
 
 class Users(models.Model):
-    """  openMRS Users Class  """
+    """  OpenMRS users Class  """
     class Meta:
-        db_table = 'users'
-    user_id = models.IntegerField(max_length=11, unique=True, primary_key=True)
+        db_table = "users"
+    user_id = models.IntegerField(unique=True, primary_key=True)
     username = models.CharField(max_length=50, unique=True)
 
 
 class DynaSwapUsers(models.Model):
-    """  DynaSwapUsers Class  """
+    """  dynaswap_users Class  """
     class Meta:
-        db_table = 'dynaswap_users'
-    dynaswap_user_id = models.IntegerField(max_length=11, primary_key=True)
+        db_table = "dynaswap_users"
+    dynaswap_user_id = models.IntegerField(primary_key=True)
     role = models.CharField(max_length=50)
     bio_capsule = models.BinaryField()
     classifier = models.BinaryField()
@@ -40,11 +40,12 @@ class DynaSwapUsers(models.Model):
 
 
 class UsersRoles(models.Model):
-    """  openMRS User_Role Class  """
+    """  OpenMRS user_role Class  """
     class Meta:
-        db_table = 'user_role'
-    user_id = models.ForeignKey(Users, db_column='user_id', on_delete=models.CASCADE)
-    role = models.ForeignKey(Roles, db_column='role', on_delete=models.CASCADE)
+        db_table = "user_role"
+    user_id = models.ForeignKey(
+        Users, db_column="user_id", on_delete=models.CASCADE)
+    role = models.ForeignKey(Roles, db_column="role", on_delete=models.CASCADE)
 
     def __str__(self):
         return self.user_id, self.role

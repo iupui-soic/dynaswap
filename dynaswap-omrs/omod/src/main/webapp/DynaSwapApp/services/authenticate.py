@@ -1,11 +1,6 @@
-import cv2
-import numpy as np
-import os
 import pickle
-from sklearn.svm import SVC
+import numpy as np
 from DynaSwapApp.services.face_utils import FaceUtils
-from DynaSwapApp.services.face_models.MTCNN import MtcnnService
-from DynaSwapApp.services.face_models.FNET import FnetService
 from DynaSwapApp.models import Roles
 
 
@@ -14,20 +9,21 @@ class Authenticate:
         face_util = FaceUtils()
         # Preprocess
         try:
-            image = face_util.align(image)
-        except:
-            raise ValueError('Multiple or no faces detected in image.')
-            print('Multiple or no faces detected in image.')
+            image = face_util.preprocess(image)
+        except Exception as e:
+            raise ValueError("Multiple or no faces detected in image.")
+            print("Multiple or no faces detected in image.")
 
         # Feature extraction
-        feature = face_util.extract(image)
+        query_feature = face_util.embed(image)
 
         # Get RS feature from database
-        rs_feature = Roles.objects.filter(role=role)[0].feature
-        rs_feature = pickle.loads(rs_feature)[0, 0, :-1].astype(float)
+        rs_feature = pickle.loads(Roles.objects.filter(
+            role=role)[0].feature)[:-1].astype(float)
 
         # BioCapsule generation
-        bc = face_util.bc_fusion(user_id, feature, role, rs_feature)
+        bc = np.append(face_util.biocapsule(
+            query_feature, rs_feature).astype(object), [user_id, role])
         return bc
 
     def authenticate_classifier(self, bc, classifier):

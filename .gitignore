@@ -75,3 +75,6 @@ __pycache__/
 #Windows executables
 *.exe
 *.log
+
+#Face Authentication
+face_models
