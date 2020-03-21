@@ -14,7 +14,7 @@
     -->
  
  	<!-- Uncomment the changeset below if you want to make the Item class persistable, see also Item and DynaSWAPBaseModuleDaoTest -->
-	<changeSet id="dynaswap-2019-06-02-12-22" author="siva">
+	<changeSet id="dynaswap-2019-06-02-12-22" author="tyler">
 		<preConditions onFail="MARK_RAN">
 			<not><tableExists tableName="dynaswap_users"/></not>
 		</preConditions>
@@ -22,22 +22,23 @@
 			Creating the dynaswap_item table
 		</comment>
 		<createTable tableName="dynaswap_users">
-			<column name="dynaswap_user_id" type="int" >
-			<!--<constraints primaryKey="true" nullable="false"/>-->
-			</column>
-			<column name="bio_capsule" type="mediumblob" />
-                        <column name="classifier" type="mediumblob"/>
-                        <column name="created_on" type="datetime"/>
-			<column name="last_authenticated" type="datetime"/>
+		    <column autoIncrement="true" name="face_authentication_id" type="int" >
+			    <constraints nullable="false" primaryKey="true" primaryKeyName="face_authentication_id"/>
+            </column>
+			<column name="user_id" type="int" />
 			<column name="role" type="varchar(50)" />
+			<column name="bio_capsule" type="mediumblob" />
+            <column name="classifier" type="mediumblob"/>
+            <column name="created_on" type="datetime"/>
+			<column name="last_authenticated" type="datetime"/>
 		</createTable>
-                <addForeignKeyConstraint constraintName="dynaswap_user_fk"
-                                 baseTableName="dynaswap_users"
-                                 baseColumnNames="dynaswap_user_id"
-                                 referencedTableName="users"
-                                 referencedColumnNames="user_id" />
-        </changeSet>
-	<changeSet id="dynaswap-2019-06-02-16-22" author="siva">
+		<addForeignKeyConstraint constraintName="dynaswap_user_fk"
+						         baseTableName="dynaswap_users"
+						         baseColumnNames="dynaswap_user_id"
+						         referencedTableName="users"
+						         referencedColumnNames="user_id" />
+    </changeSet>
+	<changeSet id="dynaswap-2019-06-02-16-22" author="tyler">
 		<addForeignKeyConstraint constraintName="dynaswap_role_fk"
 								 baseTableName="dynaswap_users"
 								 baseColumnNames="role"

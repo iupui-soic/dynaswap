@@ -74,7 +74,7 @@ class RegisterView(TemplateView):
         # Save new user into database
         try:
             new_user = DynaSwapUsers(
-                dynaswap_user_id=user_id, role=role, bio_capsule=bcs_binary, classifier=classifier_binary)
+                user_id=user_id, role=role, bio_capsule=bcs_binary, classifier=classifier_binary)
             new_user.save()
         except Exception:
             raise Exception("Database connection error during registration.")
@@ -98,7 +98,7 @@ class RegisterView(TemplateView):
             user_instance = user_found[0]
             user_id = user_instance.user_id
             dynaswap_user = DynaSwapUsers.objects.filter(
-                dynaswap_user_id=user_id, role=role)
+                user_id=user_id, role=role)
             if dynaswap_user.count() > 0:
                 return JsonResponse({"status": "already_registered", "error": user_name + " already registered as " + role + " role."})
 
@@ -151,7 +151,7 @@ class AuthenticateView(TemplateView):
 
         # Update user classifier
         classifier = self.__reg.register_classifier(
-            user_found.dynaswap_user_id, user_found.role, bcs)
+            user_found.user_id, user_found.role, bcs)
         classifier_binary = pickle.dumps(classifier)
         user_found.classifier = classifier_binary
 
@@ -176,7 +176,7 @@ class AuthenticateView(TemplateView):
 
             # Check valid user
             user_found = DynaSwapUsers.objects.filter(
-                dynaswap_user_id=user_id, role=role)
+                user_id=user_id, role=role)
             if user_found.count() < 1:
                 return JsonResponse({"status": "authenticate_failed"})
             user_found = user_found[0]
@@ -243,7 +243,7 @@ class GetUserRoleView(TemplateView):
                 return JsonResponse({"status": "unknown"})
 
             dynaswap_user = DynaSwapUsers.objects.filter(
-                dynaswap_user_id=user_instance.user_id, role=role)
+                user_id=user_instance.user_id, role=role)
 
             # Check not already registered
             if dynaswap_user.count() > 0:
