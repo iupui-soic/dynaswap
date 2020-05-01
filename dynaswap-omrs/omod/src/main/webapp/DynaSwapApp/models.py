@@ -28,7 +28,8 @@ class DynaSwapUsers(models.Model):
     """  dynaswap_users Class  """
     class Meta:
         db_table = "dynaswap_users"
-    dynaswap_user_id = models.IntegerField(primary_key=True)
+    face_authentication_id = models.IntegerField(primary_key=True)
+    user_id = models.IntegerField()
     role = models.CharField(max_length=50)
     bio_capsule = models.BinaryField()
     classifier = models.BinaryField()
@@ -36,7 +37,7 @@ class DynaSwapUsers(models.Model):
     last_authenticated = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.dynaswap_user_id
+        return self.face_authentication_id, self.user_id, self.role
 
 
 class UsersRoles(models.Model):
