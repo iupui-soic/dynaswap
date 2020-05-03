@@ -17,4 +17,4 @@ python3 rs_insert.py
 cd $dir
 
 # run django server
-python3 manage.py runserver 0.0.0.0:8080
+python3 manage.py runserver 0.0.0.0:8000
