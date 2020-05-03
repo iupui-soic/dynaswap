@@ -23,21 +23,21 @@
 		</comment>
 		<createTable tableName="dynaswap_users">
 		    <column autoIncrement="true" name="face_authentication_id" type="int" >
-			    <constraints nullable="false" primaryKey="true" primaryKeyName="face_authentication_id"/>
-            </column>
-			<column name="user_id" type="int" />
-			<column name="role" type="varchar(50)" />
-			<column name="bio_capsule" type="mediumblob" />
-            <column name="classifier" type="mediumblob"/>
-            <column name="created_on" type="datetime"/>
-			<column name="last_authenticated" type="datetime"/>
+		        <constraints nullable="false" primaryKey="true" primaryKeyName="face_authentication_id"/>
+                    </column>
+		    <column name="dynaswap_user_id" type="int" />
+		    <column name="role" type="varchar(50)" />
+		    <column name="bio_capsule" type="mediumblob" />
+                    <column name="classifier" type="mediumblob"/>
+                    <column name="created_on" type="datetime"/>
+		    <column name="last_authenticated" type="datetime"/>
 		</createTable>
 		<addForeignKeyConstraint constraintName="dynaswap_user_fk"
 						         baseTableName="dynaswap_users"
 						         baseColumnNames="dynaswap_user_id"
 						         referencedTableName="users"
 						         referencedColumnNames="user_id" />
-    </changeSet>
+        </changeSet>
 	<changeSet id="dynaswap-2019-06-02-16-22" author="tyler">
 		<addForeignKeyConstraint constraintName="dynaswap_role_fk"
 								 baseTableName="dynaswap_users"
