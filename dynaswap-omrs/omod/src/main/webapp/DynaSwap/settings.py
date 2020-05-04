@@ -47,7 +47,7 @@ SECRET_KEY = "=1=yquob*6e-+6jhu)7yw$z8z0_$y87el099ps9hnpy0h4*1fa"
 # SECURITY WARNING: don"t run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["dynaswap.info"]
+ALLOWED_HOSTS = [".dynaswap.info"]
 
 
 # Application definition

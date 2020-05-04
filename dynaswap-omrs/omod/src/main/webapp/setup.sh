@@ -11,7 +11,7 @@ cd $dir"/DynaSwapApp/services/"
 bash face_models.sh
 cd $dir
 
-# insert reference subject features and image paths into databse
+# insert reference subject features and image paths into database
 cd $dir"/DynaSwapApp/services/data/"
 python3 rs_insert.py
 cd $dir
