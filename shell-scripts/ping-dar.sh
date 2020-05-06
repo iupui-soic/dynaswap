@@ -2,4 +2,4 @@
 
 # temporary server domain
 SERVER="https://dynaswap.info"
-curl -X POST "$SERVER/DAR" -d "{\"ip\": \"$(dig @resolver1.opendns.com ANYs.com +short)\"}"
+curl -X POST "$SERVER/DAR" -d "{\"ip\": \"$(curl https://diagnostic.opendns.com/myip)\"}"
