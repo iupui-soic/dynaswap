@@ -49,6 +49,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = [".dynaswap.info"]
 
+X_FRAME_OPTIONS = "SAMEORIGIN"
 
 # Application definition
 

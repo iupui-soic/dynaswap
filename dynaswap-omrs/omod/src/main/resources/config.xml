@@ -61,17 +61,13 @@
 	 /Required Privileges -->
 
 
-	<!-- Required Global Properties 
 	<globalProperty>
-		<property>@MODULE_ID@.someProperty</property>
-		<defaultValue></defaultValue>
+		<property>@MODULE_ID@.showBioCapsule</property>
+		<defaultValue>false</defaultValue>
 		<description>
-			A description of the global property goes here.  The description
-			should explain enough for administrators to understand the purpose
-			and possible values for the global property.
+			Replacing the password based login with BioCapsule authentication.
 		</description>
 	</globalProperty>
-	/Required Global Properties -->
 	
 	<!--
 	<dwr>
@@ -99,6 +95,15 @@
 	</servlet>
 	-->
 	<!-- /Servlets -->
+
+	<filter>
+		<filter-name>bioCapsuleAuthFilter</filter-name>
+		<filter-class>org.openmrs.module.dynaswap.filter.BioCapsuleAuthFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>bioCapsuleAuthFilter</filter-name>
+		<url-pattern>/login.htm</url-pattern>
+	</filter-mapping>
 	
 	
 	<!-- Internationalization -->
