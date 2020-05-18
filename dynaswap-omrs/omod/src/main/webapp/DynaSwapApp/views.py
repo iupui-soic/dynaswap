@@ -156,7 +156,6 @@ class AuthenticateView(TemplateView):
         user_found.classifier = classifier_binary
 
         # Save updated user into database
-        user_found.last_authenticated = timezone.now()
         user_found.save()
         print("Authentication - Database updated")
         return
@@ -205,8 +204,12 @@ class AuthenticateView(TemplateView):
             # Classification outcome
             if not classification:
                 return JsonResponse({"status": "authenticate_failed"})
+                
+            # Update user with authentication time
+            user_found.last_authenticated = timezone.now()
+            user_found.save()
 
-            # Update user with authentication time, new bc, new classifier
+            # Update user with new bc and classifier if prob > .70
             if prob > 0.70:
                 bcs = pickle.loads(user_found.bio_capsule)
                 t = Thread(target=self.update_database,
@@ -214,10 +217,6 @@ class AuthenticateView(TemplateView):
                 t.setDaemon(True)
                 t.start()
 
-            # Update user with authentication time
-            else:
-                user_found.last_authenticated = timezone.now()
-                user_found.save()
         except Exception as e:
             return JsonResponse({"status": "error", "error": str(e)})
 
