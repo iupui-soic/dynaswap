@@ -133,7 +133,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "America/Indiana/Indianapolis"
+with open("/etc/timezone") as f:
+    tz = f.read()
+TIME_ZONE = tz
 
 USE_I18N = True
 
