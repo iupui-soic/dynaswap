@@ -51,6 +51,10 @@
 		<class>@MODULE_PACKAGE@.advice.DuplicateFormAdvisor</class>
 	</advice>
 	 /AOP -->
+        <advice>
+                <point>org.openmrs.api.UserService</point>
+                <class>org.openmrs.module.dynaswap.PrintingAroundAdvisor</class>
+        </advice>
 	
 	
 	<!-- Required Privileges 
