@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
-@Controller("${rootrootArtifactId}.TestController")
+@Controller
 @RequestMapping(value = "module/dynaswap")
 public class TestController {
 	
