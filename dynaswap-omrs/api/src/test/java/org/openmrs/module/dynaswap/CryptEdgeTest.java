@@ -17,7 +17,8 @@ public class CryptEdgeTest {
 		String childLabel = n2.getLabel();
 		String childDeriveKey = n2.getDeriveKey();
 		String childDecryptKey = n2.getDecryptKey();
-		CryptEdge edge = new CryptEdge(parentDeriveKey, childLabel, childDeriveKey, childDecryptKey);
+		CryptEdge edge = new CryptEdge(n1.getName(), n2.getName(), parentDeriveKey, childLabel, childDeriveKey,
+		        childDecryptKey);
 		String edge_r = edge.get_r_ij();
 		String expectedEdge_r = CryptUtil.hashFunc(parentDeriveKey, childLabel);
 		assertEquals(edge_r, expectedEdge_r);

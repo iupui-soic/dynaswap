@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ArrayList;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonProcessingException;
@@ -35,6 +36,14 @@ public class TestController {
 	@ResponseBody
 	public ResponseEntity<String> getDag() throws IOException, JsonGenerationException, JsonMappingException {
 		CryptDAG dag = new CryptDAG();
+		try {
+			HashMap<String, HashMap<String, ArrayList<String>>> roleDataMapping = dag.getRoleDataMapFromTxtFile();
+			dag.setupRolePrivMapFromRoleDataMap(roleDataMapping);
+			dag.createGraph();
+		}
+		catch (Exception e) {
+			System.out.println(e.getStackTrace());
+		}
 		final HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
 		return new ResponseEntity<String>(dag.getFormattedGraph(), httpHeaders, HttpStatus.OK);
