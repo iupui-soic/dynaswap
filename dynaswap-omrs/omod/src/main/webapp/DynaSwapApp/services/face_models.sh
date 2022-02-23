@@ -1,5 +1,5 @@
 echo 'Downloading and extracting face models!'
 
-wget https://cs.iupui.edu/~phillity/dynaswap_models.tar.gz
+wget https://github.com/iupui-soic/dynaswap/releases/download/v1.4/dynaswap_models.tar.gz
 tar -xvzf dynaswap_models.tar.gz
 rm dynaswap_models.tar.gz
