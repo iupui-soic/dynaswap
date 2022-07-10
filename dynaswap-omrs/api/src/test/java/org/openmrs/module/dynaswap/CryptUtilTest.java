@@ -25,13 +25,31 @@ public class CryptUtilTest {
 	}
 	
 	@Test
+	public void general_encrypt_decrypt() {
+		String str = "Hello World!";
+		String keyHexStr = DigestUtils.md5Hex("myKey");
+		String ciphertext = CryptUtil.encrypt(keyHexStr, str);
+		String plaintext = CryptUtil.decrypt(keyHexStr, ciphertext);
+		final String expectedPlaintext = str;
+		assertEquals(expectedPlaintext, plaintext);
+	}
+	
+	@Test
 	public void encrypt_decrypt() {
 		String str1 = "hello";
 		String str2 = "world";
-		String keyHexStr = DigestUtils.sha256Hex("myKey");
+		String keyHexStr = DigestUtils.md5Hex("myKey");
 		String ciphertext = CryptUtil.encrypt(keyHexStr, str1, str2);
-		String plaintext = CryptUtil.decrypt(ciphertext, keyHexStr);
+		String plaintext = CryptUtil.decrypt(keyHexStr, ciphertext);
 		final String expectedPlaintext = str1 + str2;
 		assertEquals(expectedPlaintext, plaintext);
+	}
+	
+	@Test
+	public void hexStrToByteArrayAndBack() {
+		String hexStr1 = "21fc9a4ee52169b0613f591bfd2cb8b6";
+		byte[] bArr1 = CryptUtil.hexStringToByteArray(hexStr1);
+		String newHexStr1 = CryptUtil.bytesToHex(bArr1);
+		assertEquals(hexStr1, newHexStr1);
 	}
 }

@@ -1,0 +1,49 @@
+New Role: admin
+Table: obs
+Fields: obs_id, value_drug, value_coded, value_datetime, value_text
+Table: drug_order
+Fields: order_id
+Table: note
+Fields: text
+Table: patient
+Fields: patient_id, allergy_status
+Table: person
+Fields: person_id, birthdate, gender
+Table: test_order
+Fields: clinical_history
+Table: allergy
+Fields: allergy_id, allergy_type
+Table: conditions
+Fields: status
+Table: drug
+Fields: drug_id, concept_id
+Table: appointmentscheduling_appointment
+Fields: appointment_id, time_slot_id, visit_id, patient_id, appointment_type_id
+
+New Role: doctor
+Table: obs
+Fields: obs_id, value_drug, value_coded, value_datetime, value_text
+Table: drug_order
+Fields: order_id
+Table: note
+Fields: text
+
+New Role: nurse
+Table: patient
+Fields: patient_id, allergy_status
+Table: person
+Fields: person_id, birthdate, gender
+Table: test_order
+Fields: clinical_history
+Table: allergy
+Fields: allergy_id, allergy_type
+Table: conditions
+Fields: status
+Table: drug
+Fields: drug_id, concept_id
+
+New Role: front desk
+Table: appointmentscheduling_appointment
+Fields: appointment_id, time_slot_id, visit_id, patient_id, appointment_type_id
+Table: person
+Fields: gender, birthdate, person_id

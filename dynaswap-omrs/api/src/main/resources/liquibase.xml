@@ -49,4 +49,56 @@
 			<column name="feature" type="mediumblob"></column>
 		</addColumn>
 	</changeSet>
+
+	<changeSet id="dynaswap-2020-11-6-1" author="brandon">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="cryptnode"/></not>
+		</preConditions>
+		<comment>
+			Creating table for cryptographic nodes.
+		</comment>
+		<createTable tableName="cryptnode">
+			<column autoIncrement="true" name="id" type="int">
+				<constraints nullable="false" primaryKey="true" primaryKeyName="id" />
+			</column>
+			<column name="name" type="varchar(50)" />
+			<column name="label" type="varchar(64)" />
+			<column name="secret" type="varchar(64)" />
+		</createTable>
+	</changeSet>
+
+	<changeSet id="dynaswap-2020-11-6-2" author="brandon">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="cryptedge"/></not>
+		</preConditions>
+		<comment>
+			Creating table for cryptographic edges.
+		</comment>
+		<createTable tableName="cryptedge">
+			<column autoIncrement="true" name="id" type="int">
+				<constraints nullable="false" primaryKey="true" primaryKeyName="id" />
+			</column>
+			<column name="r_ij" type="varchar(64)" />
+			<column name="y_ij" type="varchar(500)" />
+			<column name="parent_id" type="varchar(50)" />
+			<column name="child_id" type="varchar(50)" />
+		</createTable>
+	</changeSet>
+
+	<changeSet id="dynaswap-2020-11-6-3" author="brandon">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="cryptnode_cryptedge"/></not>
+		</preConditions>
+		<comment>
+			Creating mapping table between cryptographic nodes and edges.
+		</comment>
+		<createTable tableName="cryptnode_cryptedge">
+			<column name="cryptnode_id" type="int">
+				<constraints nullable="false" primaryKey="true" primaryKeyName="PK_cryptnode_cryptedge" />
+			</column>
+			<column name="cryptedge_id" type="int">
+				<constraints nullable="false" primaryKey="true" primaryKeyName="PK_cryptnode_cryptedge" />
+			</column>
+		</createTable>
+	</changeSet>
 </databaseChangeLog>

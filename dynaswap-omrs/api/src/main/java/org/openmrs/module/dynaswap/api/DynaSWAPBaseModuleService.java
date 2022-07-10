@@ -14,6 +14,7 @@ import org.openmrs.api.APIException;
 import org.openmrs.api.OpenmrsService;
 import org.openmrs.module.dynaswap.DynaSWAPBaseModuleConfig;
 import org.openmrs.module.dynaswap.Item;
+import org.openmrs.module.dynaswap.atallah.CryptNode;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -45,4 +46,12 @@ public interface DynaSWAPBaseModuleService extends OpenmrsService {
 	@Authorized(DynaSWAPBaseModuleConfig.MODULE_PRIVILEGE)
 	@Transactional
 	Item saveItem(Item item) throws APIException;
+	
+	@Authorized(DynaSWAPBaseModuleConfig.MODULE_PRIVILEGE)
+	@Transactional
+	CryptNode saveCryptNode(CryptNode node) throws APIException;
+	
+	@Authorized(DynaSWAPBaseModuleConfig.MODULE_PRIVILEGE)
+	@Transactional
+	int deleteAllCryptNodeEdgeData() throws APIException;
 }

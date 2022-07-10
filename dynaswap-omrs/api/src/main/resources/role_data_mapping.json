@@ -1,0 +1,31 @@
+{
+    "admin": {
+        "obs": ["obs_id", "value_drug", "value_coded", "value_datetime", "value_text"],
+        "drug_order": ["order_id"],
+        "note": ["text"],
+        "patient": ["patient_id", "allergy_status"],
+        "person": ["person_id", "birthdate", "gender"],
+        "test_order": ["clinical_history"],
+        "allergy": ["allergy_id", "allergy_type"],
+        "conditions": ["status"],
+        "drug": ["drug_id", "concept_id"],
+        "appointmentscheduling_appointment": ["appointment_id", "time_slot_id", "visit_id", "patient_id", "appointment_type_id"]
+    },
+    "doctor": {
+        "obs": ["obs_id", "value_drug", "value_coded", "value_datetime", "value_text"],
+        "drug_order": ["order_id"],
+        "note": ["text"]
+    },
+    "nurse": {
+        "patient": ["patient_id", "allergy_status"],
+        "person": ["person_id", "birthdate", "gender"],
+        "test_order": ["clinical_history"],
+        "allergy": ["allergy_id", "allergy_type"],
+        "conditions": ["status"],
+        "drug": ["drug_id", "concept_id"]
+    },
+    "front desk": {
+        "appointmentscheduling_appointment": ["appointment_id", "time_slot_id", "visit_id", "patient_id", "appointment_type_id"],
+        "person": ["gender", "birthdate", "person_id"]
+    }
+}
